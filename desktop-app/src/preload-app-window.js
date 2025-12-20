@@ -10,6 +10,12 @@ contextBridge.exposeInMainWorld("electronAPI", {
 		ipcRenderer.send('move-mouse', x, y, performance.now());
 	},
 
+	onSyncMouse: (callback) => {
+		ipcRenderer.on("sync-mouse", (_event, x, y) => {
+			callback(x, y);
+		});
+	},
+
 	onShortcut: (callback) => {
 		ipcRenderer.on("shortcut", (_event, data) => {
 			// console.log("shortcut", data);

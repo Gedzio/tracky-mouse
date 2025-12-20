@@ -689,6 +689,12 @@ TrackyMouse.init = function (div, { statsJs = false } = {}) {
 		window.electronAPI.getIsPackaged().then((isPackaged) => {
 			runAtLoginCheckbox.disabled = !isPackaged;
 		});
+
+		window.electronAPI.onSyncMouse((x, y) => {
+			mouseX = x;
+			mouseY = y;
+			mouseNeedsInitPos = false; // Prevent it from re-centering if it was waiting for init
+		});
 	} else {
 		// Hide the mouse button swapping option if we're not in the desktop app,
 		// since the system-level mouse button setting doesn't apply,
