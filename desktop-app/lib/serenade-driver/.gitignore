@@ -1,0 +1,7 @@
+# Ignore build artifacts and debug files
+*.pdb
+*.ilk
+*.exp
+*.lib
+*.obj
+build/Release/obj/
