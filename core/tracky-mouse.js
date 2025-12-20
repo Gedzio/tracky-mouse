@@ -694,6 +694,7 @@ TrackyMouse.init = function (div, { statsJs = false } = {}) {
 			mouseX = x;
 			mouseY = y;
 			mouseNeedsInitPos = false; // Prevent it from re-centering if it was waiting for init
+			lastSyncTime = performance.now(); // Inhibit head tracking for a short time
 		});
 	} else {
 		// Hide the mouse button swapping option if we're not in the desktop app,
@@ -735,6 +736,7 @@ TrackyMouse.init = function (div, { statsJs = false } = {}) {
 	var mouseY = 0;
 	var prevMovementX = 0;
 	var prevMovementY = 0;
+	var lastSyncTime = 0;
 	var enableTimeTravel = false;
 	// var movementXSinceFacemeshUpdate = 0;
 	// var movementYSinceFacemeshUpdate = 0;
@@ -1783,13 +1785,30 @@ TrackyMouse.init = function (div, { statsJs = false } = {}) {
 				mouseY = Math.min(Math.max(0, mouseY), screenHeight);
 
 				if (mouseNeedsInitPos) {
+					// In Electron mode, we wait for 'sync-mouse' to give us the real position.
+					// Moving to center prematurely causes the cursor to jump.
+					if (window.electronAPI) {
+						// Retry requesting sync if we haven't heard back in a while.
+						// This fixes the case where the initial sync was lost or happened too early.
+						const now = performance.now();
+						if (now - (window.lastRequestSyncTime || 0) > 500) {
+							window.electronAPI.requestSync();
+							window.lastRequestSyncTime = now;
+						}
+						return;
+					}
 					// TODO: option to get preexisting mouse position instead of set it to center of screen
 					mouseX = screenWidth / 2;
 					mouseY = screenHeight / 2;
 					mouseNeedsInitPos = false;
 				}
 				if (window.electronAPI) {
-					window.electronAPI.moveMouse(~~mouseX, ~~mouseY);
+					// Inhibit head tracking if we recently synced with the real mouse position
+					// (i.e. the user moved the mouse manually).
+					// This prevents "fighting" between the head tracker and the mouse.
+					if (performance.now() - lastSyncTime > 70) {
+						window.electronAPI.moveMouse(~~mouseX, ~~mouseY);
+					}
 					pointerEl.style.display = "none";
 				} else {
 					pointerEl.style.display = "";

@@ -24,6 +24,8 @@ if (process.platform === 'win32') {
 
 const { parser } = require('./cli.js');
 const { getVersion } = require('./version.js');
+const net = require('net');
+const PIPE_NAME = '\\\\.\\pipe\\tracky-mouse-control';
 
 // Compare command line arguments:
 // - unpackaged (in development):      "path/to/electron.exe" "." "maybe/a/file.png"
@@ -144,6 +146,49 @@ if (!gotSingleInstanceLock) {
 		console.error("Error during temp file cleanup:", error);
 	}
 })();
+
+// Named Pipe Server for external control (e.g. Talon Voice)
+// This avoids needing to know the app path or spawn new processes.
+const server = net.createServer((stream) => {
+	stream.on('data', async (data) => {
+		const command = data.toString().trim();
+		console.log(`Pipe command received: ${command}`);
+
+		if (!appWindow) {
+			stream.end("Error: App window not open");
+			return;
+		}
+
+		let shouldToggle = false;
+		if (command === 'toggle') {
+			shouldToggle = true;
+		} else if (command === 'start') {
+			if (!enabled) shouldToggle = true;
+		} else if (command === 'stop') {
+			if (enabled) shouldToggle = true;
+		} else {
+			stream.end("Unknown command");
+			return;
+		}
+
+		if (shouldToggle) {
+			const curPos = await getMouseLocation();
+			appWindow.webContents.send('sync-mouse', curPos.x, curPos.y);
+			appWindow.webContents.send("shortcut", "toggle-tracking");
+			stream.end("OK");
+		} else {
+			stream.end("No change");
+		}
+	});
+});
+
+server.listen(PIPE_NAME, () => {
+	console.log(`Listening on named pipe: ${PIPE_NAME}`);
+});
+server.on('error', (err) => {
+	console.log(`Named pipe error (probably already running): ${err}`);
+});
+
 
 // Handle --version in the basic case where the app is not already running.
 if (args.version) {
@@ -395,7 +440,7 @@ const createWindow = () => {
 	// Expose functionality to the renderer processes.
 
 	// Allow controlling the mouse, but pause if the mouse is moved normally.
-	const thresholdToRegainControl = 10; // in pixels
+	const thresholdToRegainControl = 5; // in pixels
 	const regainControlForTime = 2000; // in milliseconds, AFTER the mouse hasn't moved for more than mouseMoveRequestHistoryDuration milliseconds (I think)
 	let regainControlTimeout = null; // also used to check if we're pausing temporarily
 	let cameraFeedDiagnostics = {};
@@ -461,6 +506,10 @@ const createWindow = () => {
 			// Avoid false positive for manual takeback.
 			mousePosHistory.push({ point: { x: initialPos.x, y: initialPos.y }, time: performance.now(), from: "notify-toggle-state" });
 		}
+	});
+	ipcMain.on('request-sync', async () => {
+		const curPos = await getMouseLocation();
+		appWindow.webContents.send('sync-mouse', curPos.x, curPos.y);
 	});
 	ipcMain.on('notify-camera-feed-diagnostics', (_event, data) => {
 		cameraFeedDiagnostics = data;
@@ -580,8 +629,10 @@ app.on('ready', async () => {
 	}
 	createWindow();
 
-	const success = globalShortcut.register('F9', () => {
+	const success = globalShortcut.register('F9', async () => {
 		// console.log('Toggle tracking');
+		const curPos = await getMouseLocation();
+		appWindow.webContents.send('sync-mouse', curPos.x, curPos.y);
 		appWindow.webContents.send("shortcut", "toggle-tracking");
 	});
 	if (!success) {
@@ -589,7 +640,7 @@ app.on('ready', async () => {
 	}
 });
 
-app.on("second-instance", (_event, uselessCorruptedArgv, workingDirectory, additionalData) => {
+app.on("second-instance", async (_event, uselessCorruptedArgv, workingDirectory, additionalData) => {
 	// Someone tried to run a second instance, or is trying to use the tracky-mouse CLI.
 	// If there are no arguments, we should focus the app's main window.
 	// If there are arguments, we should handle adjusting settings for the running app.
@@ -665,7 +716,7 @@ app.on("second-instance", (_event, uselessCorruptedArgv, workingDirectory, addit
 		output += message + "\n";
 		// console.log(message);
 	}
-	function handleSecondInstance() {
+	async function handleSecondInstance() {
 		const argv = additionalData.arguments;
 		if (argv.length === 0) {
 			// TODO: DRY with `activate` event handler?
@@ -727,6 +778,8 @@ app.on("second-instance", (_event, uselessCorruptedArgv, workingDirectory, addit
 			}
 
 			if (shouldToggle) {
+				const curPos = await getMouseLocation();
+				appWindow.webContents.send('sync-mouse', curPos.x, curPos.y);
 				appWindow.webContents.send("shortcut", "toggle-tracking");
 				// Wait a bit to ensure the state update has propagated back to the main process
 				// so we can report the correct new state?
@@ -752,7 +805,7 @@ app.on("second-instance", (_event, uselessCorruptedArgv, workingDirectory, addit
 		logToCLI("Happy birthday!"); // just in case
 	}
 
-	handleSecondInstance();
+	await handleSecondInstance();
 	deliverOutputToCLI(output);
 });
 
