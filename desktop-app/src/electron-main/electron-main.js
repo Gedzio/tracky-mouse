@@ -155,7 +155,7 @@ if (args.version) {
 // Exit for arguments that are not supported when the app is not already running.
 // Some or all of these could be supported in the future.
 // `--profile` seems useful; `--adjust` not so much.
-const secondInstanceOnlyArgs = ["profile", "adjust", "set", "get", "start", "stop"];
+const secondInstanceOnlyArgs = ["profile", "adjust", "set", "get", "start", "stop", "toggle"];
 if (secondInstanceOnlyArgs.some(arg => args[arg])) {
 	const badArgs = secondInstanceOnlyArgs.filter(arg => args[arg]);
 	const badArgsString = badArgs.map(arg => `--${arg}`).join(", ");
@@ -688,9 +688,10 @@ app.on("second-instance", (_event, uselessCorruptedArgv, workingDirectory, addit
 		// 	const filePath = path.resolve(workingDirectory, args.profile[0]);
 		// 	console.log("second-instance: Opening settings profile:", filePath);
 		// }
-		if (args.start || args.stop) {
-			if (!!args.start === !!args.stop) {
-				logToCLI("Exactly one of --start or --stop must be provided.");
+		if (args.start || args.stop || args.toggle) {
+			const commandCount = (args.start ? 1 : 0) + (args.stop ? 1 : 0) + (args.toggle ? 1 : 0);
+			if (commandCount > 1) {
+				logToCLI("Only one of --start, --stop, or --toggle can be provided.");
 				return;
 			}
 			if (!appWindow) {
@@ -700,14 +701,42 @@ app.on("second-instance", (_event, uselessCorruptedArgv, workingDirectory, addit
 				logToCLI("The app window is not open.");
 				return;
 			}
-			// TODO: differentiate between --start and --stop
-			if (enabled !== !!args.start) {
+
+			let shouldToggle = false;
+			let actionDescription = "";
+
+			if (args.toggle) {
+				shouldToggle = true;
+				actionDescription = "Toggled head tracking";
+			} else if (args.start) {
+				if (!enabled) {
+					shouldToggle = true;
+					actionDescription = "Started head tracking";
+				} else {
+					logToCLI("Head tracking is already on.");
+					return;
+				}
+			} else if (args.stop) {
+				if (enabled) {
+					shouldToggle = true;
+					actionDescription = "Stopped head tracking";
+				} else {
+					logToCLI("Head tracking is already off.");
+					return;
+				}
+			}
+
+			if (shouldToggle) {
 				appWindow.webContents.send("shortcut", "toggle-tracking");
-				logToCLI(`Toggled head tracking to ${enabled ? "off" : "on"}.`);
+				// Wait a bit to ensure the state update has propagated back to the main process
+				// so we can report the correct new state?
+				// Actually, we can just assume it worked for now, or use the `enabled` variable 
+				// BUT strictly speaking `enabled` isn't updated synchronously.
+				// However, for the CLI output, we can predict the state.
+				const newState = args.stop ? "off" : (args.start ? "on" : (!enabled ? "on" : "off"));
+				logToCLI(`${actionDescription} (now ${newState}).`);
 				return;
 			}
-			logToCLI(`Head tracking is already ${enabled ? "on" : "off"}.`);
-			return;
 		}
 		if (args.set || args.adjust || args.get || args.profile) {
 			logToCLI("Arguments not supported yet. CLI is a work in progress.");

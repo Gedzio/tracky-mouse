@@ -1575,6 +1575,58 @@ TrackyMouse.init = function (div, { statsJs = false } = {}) {
 							if (distance < headSize * 0.42) {
 								return false;
 							}
+
+							// Avoid mouth movement affecting pointer position (smiling, talking).
+							if (annotations.lipsUpperOuter && annotations.lipsLowerOuter) {
+								// Calculate mouth center
+								// (could be optimized by caching the center per frame, but there's not that many points)
+								// (actually, let's just use the bounding box logic or simple distance from a representative point)
+								// lipsUpperOuter comes with a bunch of points.
+								// Let's use the first and last (corners?) or just iterate.
+								// Actually, reusing the "noseToMouth" vector might be good?
+								// Let's just average the lips points.
+								let mx = 0, my = 0, n = 0;
+								const addPoints = (points) => {
+									for (let i = 0; i < points.length; i++) {
+										mx += points[i][0];
+										my += points[i][1];
+										n++;
+									}
+								};
+								addPoints(annotations.lipsUpperOuter);
+								addPoints(annotations.lipsLowerOuter);
+								mx /= n;
+								my /= n;
+
+								// width of mouth (approx)
+								const leftCorner = annotations.lipsUpperOuter[0]; // simplistic assumption of order
+								const rightCorner = annotations.lipsUpperOuter[annotations.lipsUpperOuter.length - 1]; // simplistic
+								// Actually facemesh points order is fixed but looking up the indices is annoying.
+								// Let's just use the bounding box of the lips to determine a "radius".
+								let minX = Infinity, maxX = -Infinity;
+								let minY = Infinity, maxY = -Infinity;
+								const checkBounds = (points) => {
+									for (let i = 0; i < points.length; i++) {
+										const [x, y] = points[i];
+										if (x < minX) minX = x;
+										if (x > maxX) maxX = x;
+										if (y < minY) minY = y;
+										if (y > maxY) maxY = y;
+									}
+								};
+								checkBounds(annotations.lipsUpperOuter);
+
+								// Expand the exclusion zone significantly to include cheeks affected by smiling
+								const mouthWidth = maxX - minX;
+								const mouthHeight = maxY - minY;
+								const exclusionRadius = Math.max(mouthWidth, mouthHeight * 2) * 1.2;
+
+								const distToMouth = Math.hypot(mx - mainOops.curXY[pointOffset], my - mainOops.curXY[pointOffset + 1]);
+								if (distToMouth < exclusionRadius) {
+									return false;
+								}
+							}
+
 							return true;
 						});
 					}, () => {

@@ -62,6 +62,11 @@ parser.add_argument("--stop", {
 	action: "store_true",
 });
 
+parser.add_argument("--toggle", {
+	help: "Toggle head tracking.",
+	action: "store_true",
+});
+
 parser.add_argument("-v", "--version", {
 	// action: "version",
 	// version: require("../../package.json").version,
