@@ -3,3 +3,8 @@ body {
 	overflow: hidden;
 	margin: 0;
 }
+
+/* Hide the status bar (Press F9...) when in normal mode */
+body:not(.tracky-mouse-manual-takeback) #tracky-mouse-screen-overlay-message {
+	display: none !important;
+}
