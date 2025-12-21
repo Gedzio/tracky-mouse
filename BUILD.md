@@ -123,6 +123,25 @@ desktop-app/
 │   └── tracky-mouse-win32-x64/  (spakowana aplikacja)
 ```
 
+## Po zainstalowaniu
+
+Po uruchomieniu `Tracky Mouse Setup.exe`:
+
+1. **Instalacja:** Aplikacja zostanie zainstalowana w:
+   ```
+   %LocalAppData%\tracky-mouse\
+   ```
+   (Zwykle: `C:\Users\<TwojaNazwaUżytkownika>\AppData\Local\tracky-mouse\`)
+
+2. **Automatyczne uruchomienie:** Aplikacja uruchomi się automatycznie zaraz po zakończeniu instalacji.
+
+3. **Skróty w systemie:**
+   - Aplikacja pojawi się w **Menu Start** (wyszukaj "Tracky Mouse")
+   - Można ją odinstalować przez **Panel Sterowania** → Programy i funkcje
+   - Lub przez **Ustawienia** → Aplikacje → Aplikacje i funkcje
+
+4. **Konfiguracja użytkownika:** Pliki konfiguracyjne i ustawienia są przechowywane w standardowej lokalizacji dla danych aplikacji użytkownika.
+
 ## Workflow przy rozwoju
 
 1. Wprowadź zmiany w kodzie (`core/`, `desktop-app/src/`, etc.)
