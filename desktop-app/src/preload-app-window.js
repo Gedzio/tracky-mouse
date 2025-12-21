@@ -46,4 +46,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
 	// isPackaged: app.isPackaged, // can't require electron's app module here
 	// isPackaged: !!process.defaultApp, // nope, doesn't exist
 	getIsPackaged: () => ipcRenderer.invoke('get-is-packaged'),
+
+	openSettingsFile: () => ipcRenderer.invoke('open-settings-file'),
+
+	openAdminGuide: () => ipcRenderer.invoke('open-admin-guide'),
 });

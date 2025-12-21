@@ -645,6 +645,10 @@ TrackyMouse.init = function (div, { statsJs = false } = {}) {
 				<label for="tracky-mouse-mirror"><span class="tracky-mouse-label-text">Mirror</span></label>
 			</div>
 			<br>
+			<button class="tracky-mouse-open-settings-button">Open Settings File</button>
+			<br>
+			<button class="tracky-mouse-admin-guide-button" style="margin-top: 5px;">📖 Admin Setup Guide</button>
+			<br>
 		</div>
 		<div class="tracky-mouse-canvas-container-container">
 			<div class="tracky-mouse-canvas-container">
@@ -678,6 +682,8 @@ TrackyMouse.init = function (div, { statsJs = false } = {}) {
 	var errorMessage = uiContainer.querySelector(".tracky-mouse-error-message");
 	var canvasContainer = uiContainer.querySelector('.tracky-mouse-canvas-container');
 	var desktopAppDownloadMessage = uiContainer.querySelector('.tracky-mouse-desktop-app-download-message');
+	var openSettingsButton = uiContainer.querySelector('.tracky-mouse-open-settings-button');
+	var adminGuideButton = uiContainer.querySelector('.tracky-mouse-admin-guide-button');
 
 	if (window.electronAPI) {
 		// Hide the desktop app download message if we're in the desktop app
@@ -696,6 +702,22 @@ TrackyMouse.init = function (div, { statsJs = false } = {}) {
 			mouseNeedsInitPos = false; // Prevent it from re-centering if it was waiting for init
 			lastSyncTime = performance.now(); // Inhibit head tracking for a short time
 		});
+
+		// Open Settings button handler
+		openSettingsButton.onclick = async () => {
+			const result = await window.electronAPI.openSettingsFile();
+			if (!result.success) {
+				console.error('Failed to open settings file:', result.error);
+			}
+		};
+
+		// Admin Setup Guide button handler
+		adminGuideButton.onclick = async () => {
+			const result = await window.electronAPI.openAdminGuide();
+			if (!result.success) {
+				console.error('Failed to open admin guide:', result.error);
+			}
+		};
 	} else {
 		// Hide the mouse button swapping option if we're not in the desktop app,
 		// since the system-level mouse button setting doesn't apply,

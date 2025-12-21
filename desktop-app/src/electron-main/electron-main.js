@@ -26,6 +26,9 @@ const { parser } = require('./cli.js');
 const { getVersion } = require('./version.js');
 const net = require('net');
 const PIPE_NAME = '\\\\.\\pipe\\tracky-mouse-control';
+// TCP port for cross-elevation communication fallback
+// Change this port if you have a conflict with another application
+const TCP_PORT = 28232;
 
 // Compare command line arguments:
 // - unpackaged (in development):      "path/to/electron.exe" "." "maybe/a/file.png"
@@ -189,6 +192,46 @@ server.on('error', (err) => {
 	console.log(`Named pipe error (probably already running): ${err}`);
 });
 
+// TCP Socket Server as fallback for cross-elevation access
+// This works when Named Pipe fails due to different privilege levels between app and client
+const tcpServer = net.createServer((socket) => {
+	socket.on('data', async (data) => {
+		const command = data.toString().trim();
+		console.log(`TCP command received: ${command}`);
+
+		if (!appWindow) {
+			socket.write("Error: App window not open");
+			socket.end();
+			return;
+		}
+
+		let shouldToggle = false;
+		if (command === 'toggle') {
+			shouldToggle = true;
+		} else if (command === 'start') {
+			if (!enabled) shouldToggle = true;
+		} else if (command === 'stop') {
+			if (enabled) shouldToggle = true;
+		} else {
+			socket.write("Unknown command");
+			socket.end();
+			return;
+		}
+
+		if (shouldToggle) {
+			const curPos = await getMouseLocation();
+			appWindow.webContents.send('sync-mouse', curPos.x, curPos.y);
+			appWindow.webContents.send("shortcut", "toggle-tracking");
+			socket.write("OK");
+		} else {
+			socket.write("No change");
+		}
+		socket.end();
+	});
+});
+
+// TCP server will start after settings are loaded (see app.on('ready'))
+
 
 // Handle --version in the basic case where the app is not already running.
 if (args.version) {
@@ -235,12 +278,46 @@ let sensitivityY = undefined;
 let acceleration = undefined;
 let startEnabled = undefined;
 let runAtLogin = undefined;
+let tcpPort = undefined; // TCP port for cross-elevation fallback (default: 28232)
+let toggleShortcut = undefined; // Global shortcut to toggle tracking (default: 'F9')
 
 let enabled = true;
 
 const settingsFile = path.join(app.getPath('userData'), 'tracky-mouse-settings.json');
 const formatName = "tracky-mouse-settings";
 const formatVersion = 1;
+
+async function createDefaultSettings() {
+	// Create default settings file if it doesn't exist
+	try {
+		await fs.access(settingsFile);
+		// File exists, do nothing
+	} catch (error) {
+		if (error.code === 'ENOENT') {
+			// File doesn't exist, create it with defaults
+			console.log('Creating default settings file...');
+			const defaultSettings = {
+				formatVersion,
+				formatName,
+				globalSettings: {
+					startEnabled: true,
+					runAtLogin: false,
+					swapMouseButtons: false,
+					mirrorCameraView: true,
+					headTrackingSensitivityX: 0.018,
+					headTrackingSensitivityY: 0.031,
+					headTrackingAcceleration: 0.5,
+					tcpPort: 28232,
+					toggleShortcut: 'F9',
+				},
+			};
+			await fs.writeFile(settingsFile, JSON.stringify(defaultSettings, null, '\t'));
+			console.log('Default settings file created.');
+		} else {
+			throw error;
+		}
+	}
+}
 
 async function loadSettings() {
 	let data;
@@ -287,6 +364,8 @@ function serializeSettings() {
 			headTrackingSensitivityX: sensitivityX,
 			headTrackingSensitivityY: sensitivityY,
 			headTrackingAcceleration: acceleration,
+			tcpPort,
+			toggleShortcut,
 			// TODO:
 			// eyeTrackingSensitivityX,
 			// eyeTrackingSensitivityY,
@@ -347,6 +426,12 @@ function deserializeSettings(settings) {
 				// console.log("Ignoring runAtLogin setting because the app is not packaged.");
 				// Could maybe try to pass it arguments to run the app in development mode, but it might not be worth it.
 			}
+		}
+		if (settings.globalSettings.tcpPort !== undefined) {
+			tcpPort = settings.globalSettings.tcpPort;
+		}
+		if (settings.globalSettings.toggleShortcut !== undefined) {
+			toggleShortcut = settings.globalSettings.toggleShortcut;
 		}
 	}
 }
@@ -530,6 +615,41 @@ const createWindow = () => {
 		return app.isPackaged;
 	});
 
+	ipcMain.handle('open-settings-file', async () => {
+		const { shell } = require('electron');
+		try {
+			// Ensure settings file exists
+			await createDefaultSettings();
+			// Open in default editor
+			const result = await shell.openPath(settingsFile);
+			if (result) {
+				console.error('Failed to open settings file:', result);
+				return { success: false, error: result };
+			}
+			return { success: true, path: settingsFile };
+		} catch (error) {
+			console.error('Error opening settings file:', error);
+			return { success: false, error: error.message };
+		}
+	});
+
+	ipcMain.handle('open-admin-guide', async () => {
+		const { shell } = require('electron');
+		try {
+			// Path to ADMIN-AUTOSTART.md - it's in the parent directory of src
+			const guidePath = path.join(__dirname, '..', '..', 'ADMIN-AUTOSTART.md');
+			const result = await shell.openPath(guidePath);
+			if (result) {
+				console.error('Failed to open admin guide:', result);
+				return { success: false, error: result };
+			}
+			return { success: true, path: guidePath };
+		} catch (error) {
+			console.error('Error opening admin guide:', error);
+			return { success: false, error: error.message };
+		}
+	});
+
 	ipcMain.on('click', async (_event, x, y, _time) => {
 		if (regainControlTimeout || !enabled) {
 			return;
@@ -619,6 +739,7 @@ const createWindow = () => {
 // Some APIs can only be used after this event occurs.
 app.on('ready', async () => {
 	try {
+		await createDefaultSettings(); // Create default settings file if it doesn't exist
 		await loadSettings();
 	} catch (error) {
 		// TODO: copy file to a backup location, and continue with default settings
@@ -629,15 +750,26 @@ app.on('ready', async () => {
 	}
 	createWindow();
 
-	const success = globalShortcut.register('F9', async () => {
+	// Use configured toggle shortcut or default to 'F9'
+	const actualShortcut = toggleShortcut || 'F9';
+	const success = globalShortcut.register(actualShortcut, async () => {
 		// console.log('Toggle tracking');
 		const curPos = await getMouseLocation();
 		appWindow.webContents.send('sync-mouse', curPos.x, curPos.y);
 		appWindow.webContents.send("shortcut", "toggle-tracking");
 	});
 	if (!success) {
-		dialog.showErrorBox("Failed to register shortcut", "Failed to register global shortcut F9. You'll need to pause from within the app.");
+		dialog.showErrorBox("Failed to register shortcut", `Failed to register global shortcut ${actualShortcut}. You'll need to pause from within the app.`);
 	}
+
+	// Start TCP server with configured port (or default)
+	const actualTcpPort = tcpPort || TCP_PORT;
+	tcpServer.listen(actualTcpPort, '127.0.0.1', () => {
+		console.log(`Listening on TCP port ${actualTcpPort} (fallback for cross-elevation)`);
+	});
+	tcpServer.on('error', (err) => {
+		console.log(`TCP server error: ${err}`);
+	});
 });
 
 app.on("second-instance", async (_event, uselessCorruptedArgv, workingDirectory, additionalData) => {

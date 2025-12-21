@@ -1,0 +1,15 @@
+{
+	"formatVersion": 1,
+	"formatName": "tracky-mouse-settings",
+	"globalSettings": {
+		"startEnabled": true,
+		"runAtLogin": false,
+		"swapMouseButtons": false,
+		"mirrorCameraView": true,
+		"headTrackingSensitivityX": 0.025,
+		"headTrackingSensitivityY": 0.050,
+		"headTrackingAcceleration": 0.5,
+		"tcpPort": 28232,
+		"toggleShortcut": "F9"
+	}
+}
