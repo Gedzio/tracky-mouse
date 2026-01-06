@@ -31,11 +31,14 @@ electronAPI.onChangeDwellClicking((_event, isEnabled, isManualTakeback, cameraFe
 	// - bad lighting conditions
 	// see: https://github.com/1j01/tracky-mouse/issues/26
 
-	document.body.classList.toggle("tracky-mouse-manual-takeback", isManualTakeback);
+	document.body.classList.toggle("tracky-mouse-manual-takeback", false);
 	document.body.classList.toggle("tracky-mouse-head-not-found", cameraFeedDiagnostics.headNotFound);
 	actionSpan.innerText = isEnabled ? "disable" : "enable";
 
-	if (!isEnabled && !isManualTakeback) {
+	if (isManualTakeback) {
+		message.style.opacity = "0";
+		message.style.animation = "";
+	} else if (!isEnabled) {
 		// Fade out the message after a little while so it doesn't get in the way.
 		// TODO: make sure animation isn't interrupted by cameraFeedDiagnostics updates.
 		message.style.animation = "tracky-mouse-screen-overlay-message-fade-out 2s ease-in-out forwards 10s";

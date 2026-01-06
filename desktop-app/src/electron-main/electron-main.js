@@ -526,7 +526,7 @@ const createWindow = () => {
 
 	// Allow controlling the mouse, but pause if the mouse is moved normally.
 	const thresholdToRegainControl = 5; // in pixels
-	const regainControlForTime = 2000; // in milliseconds, AFTER the mouse hasn't moved for more than mouseMoveRequestHistoryDuration milliseconds (I think)
+	const regainControlForTime = 100; // in milliseconds, AFTER the mouse hasn't moved for more than mouseMoveRequestHistoryDuration milliseconds (I think)
 	let regainControlTimeout = null; // also used to check if we're pausing temporarily
 	let cameraFeedDiagnostics = {};
 	const updateDwellClicking = () => {
@@ -550,10 +550,19 @@ const createWindow = () => {
 		const distanceMoved = distances.length ? Math.min(...distances) : 0;
 		// console.log("distanceMoved", distanceMoved);
 		if (distanceMoved > thresholdToRegainControl) {
+			// Pause head tracking when the mouse is moved manually.
+			// This gives priority to the physical mouse.
+			if (regainControlTimeout) {
+				clearTimeout(regainControlTimeout);
+			}
+			regainControlTimeout = setTimeout(() => {
+				regainControlTimeout = null;
+				updateDwellClicking();
+			}, regainControlForTime);
+			updateDwellClicking();
 
-			// We used to pause here, but now we just want to sync the mouse position
-			// so that the head tracker doesn't snap back to where it was.
-			// This allows parallel control.
+			// Sync the mouse position so that when head tracking resumes,
+			// it doesn't snap back to the old position.
 			appWindow.webContents.send('sync-mouse', curPos.x, curPos.y);
 
 			// Prevent immediately returning to manual control after switching to camera control

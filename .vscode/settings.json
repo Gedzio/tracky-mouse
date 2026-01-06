@@ -56,7 +56,7 @@
 	// .----------------------------.
 	// | Theming                    |
 	// '----------------------------'
-	"workbench.colorTheme": "fairyfloss",
+	"workbench.colorTheme": "Atom One Light",
 	"workbench.colorCustomizations": {
 		"[fairyfloss]": {
 			"terminal.ansiMagenta": "#f36aff", // hard to see npm errors otherwise
