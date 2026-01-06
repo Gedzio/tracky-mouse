@@ -47,9 +47,9 @@
   "dependencies": {
     "about-window": "^1.15.2",
     "argparse": "^2.0.1",
-    "serenade-driver": "file:lib/serenade-driver",
     "electron-window-state": "^5.0.3",
     "fs-plus": "^3.1.1",
+    "serenade-driver": "file:lib/serenade-driver",
     "tracky-mouse": "file:../core"
   },
   "devDependencies": {

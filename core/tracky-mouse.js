@@ -576,7 +576,7 @@ TrackyMouse.init = function (div, { statsJs = false } = {}) {
 			<label class="tracky-mouse-control-row">
 				<span class="tracky-mouse-label-text">Horizontal Sensitivity</span>
 				<span class="tracky-mouse-labeled-slider">
-					<input type="range" min="0" max="100" value="25" class="tracky-mouse-sensitivity-x">
+					<input type="range" min="0" max="100" value="10" class="tracky-mouse-sensitivity-x">
 					<span class="tracky-mouse-min-label">Slow</span>
 					<span class="tracky-mouse-max-label">Fast</span>
 				</span>
@@ -584,7 +584,7 @@ TrackyMouse.init = function (div, { statsJs = false } = {}) {
 			<label class="tracky-mouse-control-row">
 				<span class="tracky-mouse-label-text">Vertical Sensitivity</span>
 				<span class="tracky-mouse-labeled-slider">
-					<input type="range" min="0" max="100" value="50" class="tracky-mouse-sensitivity-y">
+					<input type="range" min="0" max="100" value="20" class="tracky-mouse-sensitivity-y">
 					<span class="tracky-mouse-min-label">Slow</span>
 					<span class="tracky-mouse-max-label">Fast</span>
 				</span>
@@ -638,11 +638,17 @@ TrackyMouse.init = function (div, { statsJs = false } = {}) {
 				<label for="tracky-mouse-run-at-login"><span class="tracky-mouse-label-text">Run at login</span></label>
 			</div>
 			<br>
+			<br>
 			<!-- special interest: jspaint wants label not to use parent-child relationship so that os-gui's 98.css checkbox styles can work -->
 			<!-- TODO: try moving this to the corner of the camera view, so it's clearer it applies only to the camera view -->
 			<div class="tracky-mouse-control-row">
 				<input type="checkbox" checked id="tracky-mouse-mirror"/>
 				<label for="tracky-mouse-mirror"><span class="tracky-mouse-label-text">Mirror</span></label>
+			</div>
+			<br>
+			<div class="tracky-mouse-control-row">
+				<button class="tracky-mouse-shortcut-button" style="min-width: 60px;">F9</button>
+				<label><span class="tracky-mouse-label-text">Toggle Shortcut</span></label>
 			</div>
 			<br>
 			<button class="tracky-mouse-open-settings-button">Open Settings File</button>
@@ -684,6 +690,7 @@ TrackyMouse.init = function (div, { statsJs = false } = {}) {
 	var desktopAppDownloadMessage = uiContainer.querySelector('.tracky-mouse-desktop-app-download-message');
 	var openSettingsButton = uiContainer.querySelector('.tracky-mouse-open-settings-button');
 	var adminGuideButton = uiContainer.querySelector('.tracky-mouse-admin-guide-button');
+	var toggleShortcutButton = uiContainer.querySelector(".tracky-mouse-shortcut-button");
 
 	if (window.electronAPI) {
 		// Hide the desktop app download message if we're in the desktop app
@@ -781,6 +788,7 @@ TrackyMouse.init = function (div, { statsJs = false } = {}) {
 	var startEnabled;
 	var runAtLogin;
 	var swapMouseButtons;
+	var toggleShortcut = "F9";
 
 	var useClmTracking = true;
 	var showClmTracking = useClmTracking;
@@ -896,6 +904,11 @@ TrackyMouse.init = function (div, { statsJs = false } = {}) {
 				runAtLogin = settings.globalSettings.runAtLogin;
 				runAtLoginCheckbox.checked = runAtLogin;
 			}
+			if (settings.globalSettings.toggleShortcut !== undefined) {
+				toggleShortcut = settings.globalSettings.toggleShortcut;
+				toggleShortcutButton.innerText = toggleShortcut;
+				startStopButton.setAttribute("aria-keyshortcuts", toggleShortcut);
+			}
 		}
 	}
 	const formatVersion = 1;
@@ -913,6 +926,7 @@ TrackyMouse.init = function (div, { statsJs = false } = {}) {
 				headTrackingSensitivityX: sensitivityX,
 				headTrackingSensitivityY: sensitivityY,
 				headTrackingAcceleration: acceleration,
+				toggleShortcut,
 				// TODO:
 				// eyeTrackingSensitivityX,
 				// eyeTrackingSensitivityY,
@@ -1001,6 +1015,46 @@ TrackyMouse.init = function (div, { statsJs = false } = {}) {
 		if (event) {
 			setOptions({ globalSettings: { runAtLogin } });
 		}
+	};
+	toggleShortcutButton.onclick = (e) => {
+		console.log("Shortcut button clicked", e);
+		const originalText = toggleShortcutButton.innerText;
+		toggleShortcutButton.innerText = "Press keys...";
+		const handler = (event) => {
+			console.log("Keydown in shortcut handler:", event.key);
+			event.preventDefault();
+			event.stopPropagation();
+			// Wait for a non-modifier key
+			if (["Control", "Shift", "Alt", "Meta"].includes(event.key)) {
+				return;
+			}
+			
+			let accelerator = "";
+			if (event.ctrlKey) accelerator += "Ctrl+";
+			if (event.altKey) accelerator += "Alt+";
+			if (event.shiftKey) accelerator += "Shift+";
+			if (event.metaKey) accelerator += "Command+";
+			
+			let key = event.key;
+			if (key.length === 1) key = key.toUpperCase();
+			if (key === " ") key = "Space";
+			// Remap some distinct keys to Electron/Standard names if needed
+			if (key === "Escape") {
+				// Cancel
+				toggleShortcutButton.innerText = originalText;
+				window.removeEventListener("keydown", handler, { capture: true });
+				return;
+			}
+			
+			accelerator += key;
+			toggleShortcut = accelerator;
+			toggleShortcutButton.innerText = toggleShortcut;
+			startStopButton.setAttribute("aria-keyshortcuts", toggleShortcut);
+			
+			window.removeEventListener("keydown", handler, { capture: true });
+			setOptions({ globalSettings: { toggleShortcut } });
+		};
+		window.addEventListener("keydown", handler, { capture: true });
 	};
 
 	// Load defaults from HTML
@@ -1946,7 +2000,9 @@ TrackyMouse.init = function (div, { statsJs = false } = {}) {
 			handleShortcut("toggle-tracking");
 		}
 	};
-	addEventListener("keydown", handleKeydown);
+	if (!window.electronAPI) {
+		addEventListener("keydown", handleKeydown);
+	}
 
 	return {
 		dispose() {

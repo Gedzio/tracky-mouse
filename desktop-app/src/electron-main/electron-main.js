@@ -1,4 +1,4 @@
-
+﻿
 // Note: Don't require any third-party (or own) modules until after squirrel events are handled.
 // If anything goes wrong, it's very bad for it to go wrong during installation and uninstallation!
 const { app, globalShortcut, dialog, BrowserWindow, ipcMain } = require('electron');
@@ -396,7 +396,7 @@ function deserializeSettings(settings) {
 		if (settings.globalSettings.headTrackingAcceleration !== undefined) {
 			acceleration = settings.globalSettings.headTrackingAcceleration;
 		}
-		if (settings.globalSettings.startEnabled !== undefined) {
+			if (settings.globalSettings.startEnabled !== undefined) {
 			startEnabled = settings.globalSettings.startEnabled;
 		}
 		if (settings.globalSettings.runAtLogin !== undefined) {
@@ -432,6 +432,7 @@ function deserializeSettings(settings) {
 		}
 		if (settings.globalSettings.toggleShortcut !== undefined) {
 			toggleShortcut = settings.globalSettings.toggleShortcut;
+			console.log("deserializeSettings: toggleShortcut loaded as", toggleShortcut);
 		}
 	}
 }
@@ -614,6 +615,7 @@ const createWindow = () => {
 	ipcMain.on('set-options', (_event, newOptions) => {
 		deserializeSettings(newOptions);
 		saveSettings();
+		registerToggleShortcut();
 	});
 
 	ipcMain.handle('get-options', async () => {
@@ -760,16 +762,8 @@ app.on('ready', async () => {
 	createWindow();
 
 	// Use configured toggle shortcut or default to 'F9'
-	const actualShortcut = toggleShortcut || 'F9';
-	const success = globalShortcut.register(actualShortcut, async () => {
-		// console.log('Toggle tracking');
-		const curPos = await getMouseLocation();
-		appWindow.webContents.send('sync-mouse', curPos.x, curPos.y);
-		appWindow.webContents.send("shortcut", "toggle-tracking");
-	});
-	if (!success) {
-		dialog.showErrorBox("Failed to register shortcut", `Failed to register global shortcut ${actualShortcut}. You'll need to pause from within the app.`);
-	}
+	// Use configured toggle shortcut or default to 'F9'
+	registerToggleShortcut();
 
 	// Start TCP server with configured port (or default)
 	const actualTcpPort = tcpPort || TCP_PORT;
@@ -780,6 +774,28 @@ app.on('ready', async () => {
 		console.log(`TCP server error: ${err}`);
 	});
 });
+
+let registeredShortcut = null;
+function registerToggleShortcut() {
+	const newShortcut = toggleShortcut || 'F9';
+	console.log("registerToggleShortcut: registering", newShortcut, "old was", registeredShortcut);
+	if (registeredShortcut === newShortcut) {
+		return;
+	}
+	if (registeredShortcut) {
+		globalShortcut.unregister(registeredShortcut);
+	}
+	const success = globalShortcut.register(newShortcut, async () => {
+		// console.log('Toggle tracking');
+		const curPos = await getMouseLocation();
+		appWindow.webContents.send('sync-mouse', curPos.x, curPos.y);
+		appWindow.webContents.send("shortcut", "toggle-tracking");
+	});
+	if (!success) {
+		dialog.showErrorBox("Failed to register shortcut", `Failed to register global shortcut ${newShortcut}. You'll need to pause from within the app.`);
+	}
+	registeredShortcut = newShortcut;
+}
 
 app.on("second-instance", async (_event, uselessCorruptedArgv, workingDirectory, additionalData) => {
 	// Someone tried to run a second instance, or is trying to use the tracky-mouse CLI.
