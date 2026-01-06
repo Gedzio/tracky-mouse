@@ -648,6 +648,7 @@ TrackyMouse.init = function (div, { statsJs = false } = {}) {
 			<br>
 			<div class="tracky-mouse-control-row">
 				<button class="tracky-mouse-shortcut-button" style="min-width: 60px;">F9</button>
+				<button class="tracky-mouse-clear-shortcut-button" title="Clear shortcut" style="margin-left: 5px;">❌</button>
 				<label><span class="tracky-mouse-label-text">Toggle Shortcut</span></label>
 			</div>
 			<br>
@@ -691,6 +692,7 @@ TrackyMouse.init = function (div, { statsJs = false } = {}) {
 	var openSettingsButton = uiContainer.querySelector('.tracky-mouse-open-settings-button');
 	var adminGuideButton = uiContainer.querySelector('.tracky-mouse-admin-guide-button');
 	var toggleShortcutButton = uiContainer.querySelector(".tracky-mouse-shortcut-button");
+	var clearShortcutButton = uiContainer.querySelector(".tracky-mouse-clear-shortcut-button");
 
 	if (window.electronAPI) {
 		// Hide the desktop app download message if we're in the desktop app
@@ -788,7 +790,7 @@ TrackyMouse.init = function (div, { statsJs = false } = {}) {
 	var startEnabled;
 	var runAtLogin;
 	var swapMouseButtons;
-	var toggleShortcut = "F9";
+	var toggleShortcut = null;
 
 	var useClmTracking = true;
 	var showClmTracking = useClmTracking;
@@ -906,8 +908,12 @@ TrackyMouse.init = function (div, { statsJs = false } = {}) {
 			}
 			if (settings.globalSettings.toggleShortcut !== undefined) {
 				toggleShortcut = settings.globalSettings.toggleShortcut;
-				toggleShortcutButton.innerText = toggleShortcut;
-				startStopButton.setAttribute("aria-keyshortcuts", toggleShortcut);
+				toggleShortcutButton.innerText = toggleShortcut || "None";
+				if (toggleShortcut) {
+					startStopButton.setAttribute("aria-keyshortcuts", toggleShortcut);
+				} else {
+					startStopButton.removeAttribute("aria-keyshortcuts");
+				}
 			}
 		}
 	}
@@ -1055,6 +1061,13 @@ TrackyMouse.init = function (div, { statsJs = false } = {}) {
 			setOptions({ globalSettings: { toggleShortcut } });
 		};
 		window.addEventListener("keydown", handler, { capture: true });
+	};
+
+	clearShortcutButton.onclick = () => {
+		toggleShortcut = null;
+		toggleShortcutButton.innerText = "None";
+		startStopButton.removeAttribute("aria-keyshortcuts");
+		setOptions({ globalSettings: { toggleShortcut } });
 	};
 
 	// Load defaults from HTML

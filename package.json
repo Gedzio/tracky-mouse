@@ -1,32 +1,66 @@
 {
-	"private": true,
-	"name": "tracky-mouse-monorepo",
-	"description": "This package contains scripts shared between packages.",
-	"version": "1.2.0",
-	"CAN'T USE NPM WORKSPACES, see: https://github.com/1j01/tracky-mouse/issues/53": [
-		"core",
-		"desktop-app",
-		"website"
-	],
-	"scripts": {
-		"website": "cd website && npm run start",
-		"in-website": "cd website &&",
-		"desktop-app": "cd desktop-app && npm run start",
-		"in-desktop-app": "cd desktop-app &&",
-		"in-core": "cd core &&",
-		"lint-cspell": "cspell-cli lint .",
-		"lint-eslint": "eslint .",
-		"lint": "npm-run-all --continue-on-error --serial lint-*",
-		"update-cli-docs": "node -e \"const fs = require('fs'); fs.writeFileSync('CLI.md', fs.readFileSync('CLI.md', 'utf8').replace(/```HELP_OUTPUT.+?```/s, '```HELP_OUTPUT\\n' + require('child_process').execSync('tracky-mouse --help').toString().trim() + '\\n```'))\""
-	},
-	"bin": {
-		"tracky-mouse": "desktop-app/src/tracky-mouse-bin.js"
-	},
-	"devDependencies": {
-		"@eslint/js": "^9.0.0",
-		"@types/eslint": "^8.56.9",
-		"cspell-cli": "^8.7.0",
-		"eslint": "^9.0.0",
-		"npm-run-all": "^4.1.5"
-	}
+  "name": "tracky-mouse-electron",
+  "productName": "Tracky Mouse",
+  "version": "1.2.0",
+  "description": "Control your computer with your head movements",
+  "license": "MIT",
+  "author": {
+    "name": "Isaiah Odhner",
+    "email": "isaiahodhner@gmail.com",
+    "url": "https://isaiahodhner.io"
+  },
+  "keywords": [
+    "camera-mouse",
+    "mouse",
+    "camera",
+    "webcam",
+    "head-tracker",
+    "head-tracking",
+    "face-tracker",
+    "face-tracking",
+    "headmouse",
+    "facial-mouse",
+    "accessibility",
+    "cursor",
+    "pointer",
+    "pointing",
+    "input-method",
+    "hands-free",
+    "handsfree",
+    "desktop-automation"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/1j01/tracky-mouse.git"
+  },
+  "bugs": {
+    "url": "https://github.com/1j01/tracky-mouse/issues"
+  },
+  "homepage": "https://trackymouse.js.org/",
+  "main": "src/electron-main/electron-main.js",
+  "scripts": {
+    "start": "electron-forge start",
+    "package": "electron-forge package",
+    "make": "electron-forge make",
+    "publish": "env-cmd electron-forge publish"
+  },
+  "dependencies": {
+    "about-window": "^1.15.2",
+    "argparse": "^2.0.1",
+    "electron-window-state": "^5.0.3",
+    "fs-plus": "^3.1.1",
+    "bindings": "^1.5.0",
+    "node-addon-api": "^3.1.0",
+    "windows-shortcuts": "^0.1.6"
+  },
+  "devDependencies": {
+    "@electron-forge/cli": "7.4.0",
+    "@electron-forge/maker-deb": "7.4.0",
+    "@electron-forge/maker-rpm": "7.4.0",
+    "@electron-forge/maker-squirrel": "7.4.0",
+    "@electron-forge/maker-zip": "7.4.0",
+    "@electron-forge/publisher-github": "7.4.0",
+    "electron": "^20.0.1",
+    "env-cmd": "^10.1.0"
+  }
 }

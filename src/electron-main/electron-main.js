@@ -260,7 +260,7 @@ if (secondInstanceOnlyArgs.some(arg => args[arg])) {
 // Normal app behavior continues here.
 
 const windowStateKeeper = require('electron-window-state');
-const { setMouseLocation: setMouseLocationWithoutTracking, getMouseLocation, click } = require('serenade-driver');
+const { setMouseLocation: setMouseLocationWithoutTracking, getMouseLocation, click } = require('../serenade-driver');
 
 require("./menus.js"); //({ loadSettings });
 
@@ -308,7 +308,7 @@ async function createDefaultSettings() {
 					headTrackingSensitivityY: 0.031,
 					headTrackingAcceleration: 0.5,
 					tcpPort: 28232,
-					toggleShortcut: 'F9',
+					toggleShortcut: null,
 				},
 			};
 			await fs.writeFile(settingsFile, JSON.stringify(defaultSettings, null, '\t'));
@@ -777,13 +777,17 @@ app.on('ready', async () => {
 
 let registeredShortcut = null;
 function registerToggleShortcut() {
-	const newShortcut = toggleShortcut || 'F9';
+	const newShortcut = toggleShortcut;
 	console.log("registerToggleShortcut: registering", newShortcut, "old was", registeredShortcut);
 	if (registeredShortcut === newShortcut) {
 		return;
 	}
 	if (registeredShortcut) {
 		globalShortcut.unregister(registeredShortcut);
+		registeredShortcut = null;
+	}
+	if (!newShortcut) {
+		return;
 	}
 	const success = globalShortcut.register(newShortcut, async () => {
 		// console.log('Toggle tracking');
