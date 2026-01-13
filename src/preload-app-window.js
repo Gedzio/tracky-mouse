@@ -50,4 +50,19 @@ contextBridge.exposeInMainWorld("electronAPI", {
 	openSettingsFile: () => ipcRenderer.invoke('open-settings-file'),
 
 	openAdminGuide: () => ipcRenderer.invoke('open-admin-guide'),
+	
+	getLanguage: () => ipcRenderer.invoke('get-language-renderer'),
+	setLanguage: (lang) => ipcRenderer.send('set-language-renderer', lang),
+	onLanguageChanged: (callback) => {
+		ipcRenderer.on('language-changed', (_event, lang) => {
+			callback(lang);
+		});
+	},
+
+	getTrackingState: () => ipcRenderer.invoke('get-tracking-state-renderer'),
+	onTrackingStateChanged: (callback) => {
+		ipcRenderer.on('tracking-state-changed', (_event, enabled) => {
+			callback(enabled);
+		});
+	},
 });

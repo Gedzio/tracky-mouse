@@ -83,6 +83,86 @@
     <script>
       TrackyMouse.dependenciesRoot = "core";
       TrackyMouse.init();
+
+      // Language Selector Logic
+      (async () => {
+        const uiContainer = document.body; // Or find a specific container if TrackyMouse renders into one
+
+        const langContainer = document.createElement("div");
+        langContainer.style.position = "absolute";
+        langContainer.style.top = "10px";
+        langContainer.style.right = "10px";
+        langContainer.style.zIndex = "10000";
+        langContainer.style.backgroundColor = "rgba(255, 255, 255, 0.8)";
+        langContainer.style.padding = "5px";
+        langContainer.style.borderRadius = "5px";
+        langContainer.style.display = "flex";
+        langContainer.style.alignItems = "center";
+        langContainer.style.gap = "10px";
+
+        const flagImg = document.createElement("img");
+        flagImg.style.width = "32px";
+        flagImg.style.height = "32px";
+
+        const select = document.createElement('select');
+        
+        const modes = [
+          { val: 'pl', text: 'Polish' },
+          { val: 'en-c', text: 'English Command' },
+          { val: 'en-d', text: 'English Dictation' },
+          { val: 'en-m', text: 'English Mix' },
+          { val: 'sleep', text: 'Sleep' },
+          { val: 'off', text: 'Turn Off' }
+        ];
+
+        modes.forEach(m => {
+          const opt = document.createElement('option');
+          opt.value = m.val;
+          opt.innerText = m.text;
+          select.appendChild(opt);
+        });
+
+        langContainer.appendChild(flagImg);
+        langContainer.appendChild(select);
+        document.body.appendChild(langContainer);
+
+        let currentLang = 'pl';
+        let currentEnabled = true;
+
+        const updateUI = () => {
+          select.value = currentLang;
+          // New icon naming convention: icon-mode-<mode>[-active].png
+          const suffix = currentEnabled ? '-active' : '';
+          flagImg.src = `../images/icon-mode-${currentLang}${suffix}.png`;
+        };
+
+        // Initialize
+        if (window.electronAPI) {
+          window.electronAPI.getLanguage().then(lang => {
+            currentLang = lang;
+            window.electronAPI.getTrackingState().then(enabled => {
+               currentEnabled = enabled;
+               updateUI();
+            });
+          });
+
+          select.addEventListener('change', (e) => {
+            currentLang = e.target.value;
+            window.electronAPI.setLanguage(currentLang);
+            updateUI(); // Optimistic update
+          });
+
+          window.electronAPI.onLanguageChanged((lang) => {
+            currentLang = lang;
+            updateUI();
+          });
+
+          window.electronAPI.onTrackingStateChanged((enabled) => {
+             currentEnabled = enabled;
+             updateUI();
+          });
+        }
+      })();
     </script>
   </body>
 </html>

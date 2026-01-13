@@ -169,6 +169,20 @@ const server = net.createServer((stream) => {
 			if (!enabled) shouldToggle = true;
 		} else if (command === 'stop') {
 			if (enabled) shouldToggle = true;
+		} else if (command === 'get-language') {
+			stream.end(currentLanguage);
+			return;
+		} else if (command.startsWith('set-language')) {
+			const lang = command.split(' ')[1];
+			// Normalized modes: 'pl', 'en-c', 'en-d', 'en-m', 'sleep', 'off'
+			const validModes = ['pl', 'en-c', 'en-d', 'en-m', 'sleep', 'off'];
+			if (validModes.includes(lang)) {
+				setMode(lang);
+				stream.end("OK");
+			} else {
+				stream.end("Error: Invalid language/mode");
+			}
+			return;
 		} else {
 			stream.end("Unknown command");
 			return;
@@ -212,6 +226,21 @@ const tcpServer = net.createServer((socket) => {
 			if (!enabled) shouldToggle = true;
 		} else if (command === 'stop') {
 			if (enabled) shouldToggle = true;
+		} else if (command === 'get-language') {
+			socket.write(currentLanguage);
+			socket.end();
+			return;
+		} else if (command.startsWith('set-language')) {
+			const lang = command.split(' ')[1];
+			const validModes = ['pl', 'en-c', 'en-d', 'en-m', 'sleep', 'off'];
+			if (validModes.includes(lang)) {
+				setMode(lang);
+				socket.write("OK");
+			} else {
+				socket.write("Error: Invalid language");
+			}
+			socket.end();
+			return;
 		} else {
 			socket.write("Unknown command");
 			socket.end();
@@ -282,6 +311,36 @@ let tcpPort = undefined; // TCP port for cross-elevation fallback (default: 2823
 let toggleShortcut = undefined; // Global shortcut to toggle tracking (default: 'F9')
 
 let enabled = true;
+let currentLanguage = 'pl';
+
+function updateAppIcon() {
+	// User requested that the mode/icon be purely visual and controlled by the dropdown/commands,
+	// independent of the actual tracking state (enabled/disabled).
+	// ADDITIONALLY: Signal head tracking status (on/off) on the icon itself (Green Dot).
+	
+	const suffix = enabled ? '-active' : '';
+	const iconName = `icon-mode-${currentLanguage}${suffix}.png`;
+
+	const iconPath = path.join(__dirname, '../../images', iconName);
+	appWindow.setIcon(iconPath); // Might be unreliable on Windows if pinned
+	if (tray) {
+		const { nativeImage } = require('electron');
+		// Tray icon usually updates reliably
+		const trayIcon = nativeImage.createFromPath(iconPath);
+		tray.setImage(trayIcon);
+	}
+}
+
+function setMode(mode) {
+	// Requirements update: The mode selection is purely for visual/icon purposes ("what is displayed").
+	// It does NOT affect the actual tracking logic (enabled/disabled).
+	currentLanguage = mode;
+	
+	updateAppIcon();
+	if (appWindow) {
+		appWindow.webContents.send('language-changed', mode);
+	}
+}
 
 const settingsFile = path.join(app.getPath('userData'), 'tracky-mouse-settings.json');
 const formatName = "tracky-mouse-settings";
@@ -466,6 +525,9 @@ function pruneMousePosHistory() {
 let appWindow;
 /** @type {BrowserWindow} */
 let screenOverlayWindow;
+/** @type {Tray} */
+let tray = null;
+let isQuitting = false;
 
 const createWindow = () => {
 	const appWindowState = windowStateKeeper({
@@ -489,6 +551,7 @@ const createWindow = () => {
 
 	// and load the html page of the app.
 	appWindow.loadFile(`src/electron-app.html`);
+	updateAppIcon();
 
 	// Toggle the DevTools with F12
 	appWindow.webContents.on("before-input-event", (_e, input) => {
@@ -515,12 +578,21 @@ const createWindow = () => {
 	appWindowState.manage(appWindow);
 
 	// Clean up overlay when the app window is closed.
+	// Clean up overlay when the app window is closed.
+	appWindow.on('close', (event) => {
+		if (!isQuitting) {
+			event.preventDefault();
+			appWindow.hide();
+			return false;
+		}
+	});
+
 	appWindow.on('closed', () => {
-		appWindow = null; // not needed if calling app.exit(), which exits immediately, but useful if calling other methods to quit
-		// screenOverlayWindow?.close(); // doesn't work because screenOverlayWindow.closable is false
-		// app.quit(); // doesn't work either, because screenOverlayWindow.closable is false
-		app.exit(); // doesn't call beforeunload and unload listeners, or before-quit or will-quit
-		// Note: if re-assessing this, for macOS, make sure to handle the global shortcut, when the window doesn't exist.
+		appWindow = null; 
+		// If we are quitting, we need to make sure we exit
+		if (isQuitting) {
+			app.exit();
+		}
 	});
 
 	// Expose functionality to the renderer processes.
@@ -590,8 +662,17 @@ const createWindow = () => {
 		if (nowEnabled) { // don't rely on getMouseLocation when disabling the software
 			initialPos = await getMouseLocation();
 		}
+		// If toggled via F9 or internal toggle, we update enabled state.
+		// Does this change the "mode" to off/on?
+		// If we disable, we are logically in 'off' mode. 
+		// If we enable, we resume 'currentLanguage'.
 		enabled = nowEnabled;
+		updateAppIcon();
 		updateDwellClicking();
+		
+		if (appWindow) {
+			appWindow.webContents.send('tracking-state-changed', enabled);
+		}
 
 		// Start immediately if enabled.
 		clearTimeout(regainControlTimeout);
@@ -658,6 +739,21 @@ const createWindow = () => {
 		} catch (error) {
 			console.error('Error opening admin guide:', error);
 			return { success: false, error: error.message };
+		}
+	});
+
+	ipcMain.handle('get-language-renderer', async () => {
+		return currentLanguage;
+	});
+
+	ipcMain.handle('get-tracking-state-renderer', async () => {
+		return enabled;
+	});
+
+	ipcMain.on('set-language-renderer', async (_event, lang) => {
+		const validModes = ['pl', 'en-c', 'en-d', 'en-m', 'sleep', 'off'];
+		if (validModes.includes(lang)) {
+			setMode(lang);
 		}
 	});
 
@@ -760,6 +856,8 @@ app.on('ready', async () => {
 		return;
 	}
 	createWindow();
+	createTray();
+	updateAppIcon(); // Apply icon to tray immediately
 
 	// Use configured toggle shortcut or default to 'F9'
 	// Use configured toggle shortcut or default to 'F9'
@@ -988,3 +1086,51 @@ app.on('activate', () => {
 		createWindow();
 	}
 });
+
+app.on('before-quit', () => {
+	isQuitting = true;
+});
+
+function createTray() {
+	const { Tray, Menu, nativeImage } = require('electron');
+	const iconName = (!enabled) ? 'icon-mode-off.png' : (currentLanguage === 'sleep' ? 'icon-mode-sleep.png' : `icon-mode-${currentLanguage}.png`);
+	const iconPath = path.join(__dirname, '../../images', iconName);
+	const trayIcon = nativeImage.createFromPath(iconPath);
+	
+	tray = new Tray(trayIcon);
+	tray.setToolTip('Tracky Mouse');
+	
+	const contextMenu = Menu.buildFromTemplate([
+		{ 
+			label: 'Show/Hide', 
+			click: () => {
+				if (appWindow) {
+					if (appWindow.isVisible()) {
+						appWindow.hide();
+					} else {
+						appWindow.show();
+					}
+				}
+			} 
+		},
+		{ type: 'separator' },
+		{ 
+			label: 'Quit', 
+			click: () => {
+				isQuitting = true;
+				app.quit();
+			} 
+		}
+	]);
+	
+	tray.setContextMenu(contextMenu);
+	tray.on('click', () => {
+		if (appWindow) {
+			if (appWindow.isVisible()) {
+				appWindow.hide();
+			} else {
+				appWindow.show();
+			}
+		}
+	});
+}
