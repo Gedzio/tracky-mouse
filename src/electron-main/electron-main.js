@@ -313,21 +313,49 @@ let toggleShortcut = undefined; // Global shortcut to toggle tracking (default: 
 let enabled = true;
 let currentLanguage = 'pl';
 
+
+
+function resolveAssetPath(relativePath) {
+	if (app.isPackaged) {
+		const resourcesPath = path.join(process.resourcesPath, relativePath);
+		// Check if it exists in resources (handled by extraResource)
+		// We could sync check, but nativeImage handles invalid paths gracefully-ish.
+		// However, to be robust:
+		return resourcesPath;
+	}
+	// In development
+	return path.join(__dirname, '../../', relativePath);
+}
+
 function updateAppIcon() {
 	// User requested that the mode/icon be purely visual and controlled by the dropdown/commands,
 	// independent of the actual tracking state (enabled/disabled).
 	// ADDITIONALLY: Signal head tracking status (on/off) on the icon itself (Green Dot).
 	
 	const suffix = enabled ? '-active' : '';
-	const iconName = `icon-mode-${currentLanguage}${suffix}.png`;
+	const iconName = `images/icon-mode-${currentLanguage}${suffix}.png`;
+	const iconPath = resolveAssetPath(iconName);
 
-	const iconPath = path.join(__dirname, '../../images', iconName);
-	appWindow.setIcon(iconPath); // Might be unreliable on Windows if pinned
+	// Might be unreliable on Windows if pinned, but we try anyway.
+	appWindow.setIcon(iconPath); 
+	
 	if (tray) {
 		const { nativeImage } = require('electron');
-		// Tray icon usually updates reliably
+		// Tray icon usually updates reliably if the path is correct
 		const trayIcon = nativeImage.createFromPath(iconPath);
 		tray.setImage(trayIcon);
+	}
+
+	// Windows Taskbar Usage
+	if (process.platform === 'win32' && appWindow) {
+		if (enabled) {
+			// Use the active mode icon as the overlay to indicate status.
+			// Windows will scale it down to a badge.
+			const overlayPath = resolveAssetPath(`images/icon-mode-${currentLanguage}-active.png`);
+			appWindow.setOverlayIcon(overlayPath, "Tracking Enabled");
+		} else {
+			appWindow.setOverlayIcon(null, "");
+		}
 	}
 }
 
@@ -1093,8 +1121,8 @@ app.on('before-quit', () => {
 
 function createTray() {
 	const { Tray, Menu, nativeImage } = require('electron');
-	const iconName = (!enabled) ? 'icon-mode-off.png' : (currentLanguage === 'sleep' ? 'icon-mode-sleep.png' : `icon-mode-${currentLanguage}.png`);
-	const iconPath = path.join(__dirname, '../../images', iconName);
+	const iconName = (!enabled) ? 'images/icon-mode-off.png' : (currentLanguage === 'sleep' ? 'images/icon-mode-sleep.png' : `images/icon-mode-${currentLanguage}.png`);
+	const iconPath = resolveAssetPath(iconName);
 	const trayIcon = nativeImage.createFromPath(iconPath);
 	
 	tray = new Tray(trayIcon);

@@ -30,6 +30,10 @@ module.exports = {
 			// Maybe add a custom lint script to check that no images are being used by the app
 			// that won't be packaged, and that all images are being used
 		],
+		extraResource: [
+			"./images",
+			"./ADMIN-AUTOSTART.md",
+		],
 		// TODO: maybe
 		// https://electron.github.io/packager/main/interfaces/Options.html#darwinDarkModeSupport
 	},
