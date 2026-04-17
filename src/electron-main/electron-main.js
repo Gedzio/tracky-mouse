@@ -309,6 +309,7 @@ let startEnabled = undefined;
 let runAtLogin = undefined;
 let tcpPort = undefined; // TCP port for cross-elevation fallback (default: 28232)
 let toggleShortcut = undefined; // Global shortcut to toggle tracking (default: 'F9')
+let postureMonitor = undefined; // { enabled: boolean, threshold: number }
 
 let enabled = true;
 let currentLanguage = 'pl';
@@ -453,6 +454,7 @@ function serializeSettings() {
 			headTrackingAcceleration: acceleration,
 			tcpPort,
 			toggleShortcut,
+			postureMonitor,
 			// TODO:
 			// eyeTrackingSensitivityX,
 			// eyeTrackingSensitivityY,
@@ -520,6 +522,9 @@ function deserializeSettings(settings) {
 		if (settings.globalSettings.toggleShortcut !== undefined) {
 			toggleShortcut = settings.globalSettings.toggleShortcut;
 			console.log("deserializeSettings: toggleShortcut loaded as", toggleShortcut);
+		}
+		if (settings.globalSettings.postureMonitor !== undefined) {
+			postureMonitor = Object.assign({}, postureMonitor || {}, settings.globalSettings.postureMonitor);
 		}
 	}
 }
@@ -749,6 +754,19 @@ const createWindow = () => {
 			return { success: true, path: settingsFile };
 		} catch (error) {
 			console.error('Error opening settings file:', error);
+			return { success: false, error: error.message };
+		}
+	});
+
+	ipcMain.handle('save-posture-debug-log', async (_event, jsonText) => {
+		try {
+			const repoRoot = path.join(__dirname, '..', '..');
+			const filePath = path.join(repoRoot, 'posture-debug-log.json');
+			await fs.writeFile(filePath, jsonText, 'utf8');
+			console.log('Posture debug log written to', filePath);
+			return { success: true, path: filePath };
+		} catch (error) {
+			console.error('Error saving posture debug log:', error);
 			return { success: false, error: error.message };
 		}
 	});

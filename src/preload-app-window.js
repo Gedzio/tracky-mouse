@@ -50,6 +50,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
 	openSettingsFile: () => ipcRenderer.invoke('open-settings-file'),
 
 	openAdminGuide: () => ipcRenderer.invoke('open-admin-guide'),
+
+	savePostureDebugLog: (jsonText) => ipcRenderer.invoke('save-posture-debug-log', jsonText),
 	
 	getLanguage: () => ipcRenderer.invoke('get-language-renderer'),
 	setLanguage: (lang) => ipcRenderer.send('set-language-renderer', lang),

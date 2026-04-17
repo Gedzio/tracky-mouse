@@ -656,6 +656,142 @@ TrackyMouse.init = function (div, { statsJs = false } = {}) {
 			<br>
 			<button class="tracky-mouse-admin-guide-button" style="margin-top: 5px;">📖 Admin Setup Guide</button>
 			<br>
+			<div class="tracky-mouse-posture-section">
+				<div class="tracky-mouse-posture-heading">Posture Monitor</div>
+
+				<div class="tracky-mouse-posture-group">
+					<div class="tracky-mouse-posture-status-row">
+						<div class="tracky-mouse-posture-indicator" aria-live="polite">
+							<div class="tracky-mouse-posture-light" data-state="idle"></div>
+							<div class="tracky-mouse-posture-status-text">Waiting for face...</div>
+						</div>
+						<div class="tracky-mouse-posture-enable-row">
+							<input type="checkbox" id="tracky-mouse-posture-enabled" checked/>
+							<label for="tracky-mouse-posture-enabled">Enable alert</label>
+						</div>
+					</div>
+				</div>
+
+				<div class="tracky-mouse-posture-group">
+					<h4 class="tracky-mouse-posture-group-title">Baseline (neutral pose)</h4>
+					<div class="tracky-mouse-posture-baseline-row">
+						<span class="tracky-mouse-posture-baseline-value">not set</span>
+					</div>
+					<div class="tracky-mouse-posture-buttons">
+						<button type="button" class="tracky-mouse-posture-calibrate-button" title="Snapshot current pose as your neutral reference">Use current as neutral</button>
+						<button type="button" class="tracky-mouse-posture-reset-button" title="Clear baseline and re-learn">Reset baseline</button>
+					</div>
+				</div>
+
+				<div class="tracky-mouse-posture-group">
+					<h4 class="tracky-mouse-posture-group-title">Live metrics</h4>
+					<div class="tracky-mouse-posture-metrics">
+					<div class="tracky-mouse-posture-metric" data-metric="pitch" data-range="30" data-unit="°" data-digits="1">
+						<div class="tracky-mouse-posture-metric-header">
+							<span class="tracky-mouse-posture-metric-mark">–</span>
+							<span class="tracky-mouse-posture-metric-name">Head tilt (pitch)</span>
+							<span class="tracky-mouse-posture-metric-value">–</span>
+						</div>
+						<div class="tracky-mouse-posture-bar">
+							<div class="tracky-mouse-posture-bar-zone tracky-mouse-posture-bar-low"></div>
+							<div class="tracky-mouse-posture-bar-zone tracky-mouse-posture-bar-ok"></div>
+							<div class="tracky-mouse-posture-bar-zone tracky-mouse-posture-bar-high"></div>
+							<div class="tracky-mouse-posture-bar-marker"></div>
+						</div>
+						<div class="tracky-mouse-posture-thr-row">
+							<label>Low Δ: <input type="number" step="0.5" class="tracky-mouse-posture-thr-low" data-metric="pitch"></label>
+							<label>High Δ: <input type="number" step="0.5" class="tracky-mouse-posture-thr-high" data-metric="pitch"></label>
+						</div>
+					</div>
+					<div class="tracky-mouse-posture-metric" data-metric="forward" data-range="0.30" data-unit="" data-digits="3">
+						<div class="tracky-mouse-posture-metric-header">
+							<span class="tracky-mouse-posture-metric-mark">–</span>
+							<span class="tracky-mouse-posture-metric-name">Head forward/back</span>
+							<span class="tracky-mouse-posture-metric-value">–</span>
+						</div>
+						<div class="tracky-mouse-posture-bar">
+							<div class="tracky-mouse-posture-bar-zone tracky-mouse-posture-bar-low"></div>
+							<div class="tracky-mouse-posture-bar-zone tracky-mouse-posture-bar-ok"></div>
+							<div class="tracky-mouse-posture-bar-zone tracky-mouse-posture-bar-high"></div>
+							<div class="tracky-mouse-posture-bar-marker"></div>
+						</div>
+						<div class="tracky-mouse-posture-thr-row">
+							<label>Low Δ: <input type="number" step="0.005" class="tracky-mouse-posture-thr-low" data-metric="forward"></label>
+							<label>High Δ: <input type="number" step="0.005" class="tracky-mouse-posture-thr-high" data-metric="forward"></label>
+						</div>
+					</div>
+					<div class="tracky-mouse-posture-metric" data-metric="facesize" data-range="0.30" data-unit="%" data-digits="1">
+						<div class="tracky-mouse-posture-metric-header">
+							<span class="tracky-mouse-posture-metric-mark">–</span>
+							<span class="tracky-mouse-posture-metric-name">Distance to camera</span>
+							<span class="tracky-mouse-posture-metric-value">–</span>
+						</div>
+						<div class="tracky-mouse-posture-bar">
+							<div class="tracky-mouse-posture-bar-zone tracky-mouse-posture-bar-low"></div>
+							<div class="tracky-mouse-posture-bar-zone tracky-mouse-posture-bar-ok"></div>
+							<div class="tracky-mouse-posture-bar-zone tracky-mouse-posture-bar-high"></div>
+							<div class="tracky-mouse-posture-bar-marker"></div>
+						</div>
+						<div class="tracky-mouse-posture-thr-row">
+							<label>Low Δ%: <input type="number" step="1" class="tracky-mouse-posture-thr-low" data-metric="facesize"></label>
+							<label>High Δ%: <input type="number" step="1" class="tracky-mouse-posture-thr-high" data-metric="facesize"></label>
+						</div>
+					</div>
+					<div class="tracky-mouse-posture-metric" data-metric="headpos" data-range="1.0" data-unit="%" data-digits="1">
+						<div class="tracky-mouse-posture-metric-header">
+							<span class="tracky-mouse-posture-metric-mark">–</span>
+							<span class="tracky-mouse-posture-metric-name">Head vertical drop (% of face width)</span>
+							<span class="tracky-mouse-posture-metric-value">–</span>
+						</div>
+						<div class="tracky-mouse-posture-bar">
+							<div class="tracky-mouse-posture-bar-zone tracky-mouse-posture-bar-low"></div>
+							<div class="tracky-mouse-posture-bar-zone tracky-mouse-posture-bar-ok"></div>
+							<div class="tracky-mouse-posture-bar-zone tracky-mouse-posture-bar-high"></div>
+							<div class="tracky-mouse-posture-bar-marker"></div>
+						</div>
+						<div class="tracky-mouse-posture-thr-row">
+							<label>Low Δ%: <input type="number" step="5" class="tracky-mouse-posture-thr-low" data-metric="headpos"></label>
+							<label>High Δ%: <input type="number" step="5" class="tracky-mouse-posture-thr-high" data-metric="headpos"></label>
+						</div>
+					</div>
+					<div class="tracky-mouse-posture-metric tracky-mouse-posture-metric-simple" data-metric="shoulder">
+						<div class="tracky-mouse-posture-metric-header">
+							<span class="tracky-mouse-posture-metric-mark">–</span>
+							<span class="tracky-mouse-posture-metric-name">Shoulder tilt</span>
+							<span class="tracky-mouse-posture-metric-value">Not yet available</span>
+						</div>
+					</div>
+					</div>
+				</div>
+
+				<div class="tracky-mouse-posture-group">
+					<h4 class="tracky-mouse-posture-group-title">Sensitivity</h4>
+					<label class="tracky-mouse-control-row tracky-mouse-posture-global-row">
+						<span>Global multiplier</span>
+						<span class="tracky-mouse-labeled-slider">
+							<input type="range" min="0" max="100" value="50" class="tracky-mouse-posture-threshold">
+							<span class="tracky-mouse-min-label">Strict (×0.5)</span>
+							<span class="tracky-mouse-max-label">Lenient (×2)</span>
+						</span>
+					</label>
+					<div class="tracky-mouse-posture-buttons">
+						<button type="button" class="tracky-mouse-posture-save-defaults-button" title="Save current thresholds (Low/High + global multiplier) as your personal defaults. Restore button uses these.">Save current as my defaults</button>
+						<button type="button" class="tracky-mouse-posture-restore-defaults-button" title="Restore thresholds to your saved defaults (or built-in defaults if you haven't saved any)">Restore defaults</button>
+					</div>
+				</div>
+				<details class="tracky-mouse-posture-debug-section">
+					<summary>Debug tools</summary>
+					<div class="tracky-mouse-posture-buttons">
+						<button type="button" class="tracky-mouse-posture-debug-button" title="Save labeled samples + last 60s of metrics to posture-debug-log.json in the project folder">Save debug log</button>
+					</div>
+					<div class="tracky-mouse-posture-buttons">
+						<button type="button" class="tracky-mouse-posture-mark-good-button" title="Click while sitting in a GOOD posture to capture a labeled sample">Mark: good posture</button>
+						<button type="button" class="tracky-mouse-posture-mark-bad-button" title="Click while SLOUCHING to capture a labeled sample">Mark: bad posture</button>
+						<span class="tracky-mouse-posture-mark-count">good: 0 / bad: 0</span>
+					</div>
+				</details>
+			</div>
+			<br>
 		</div>
 		<div class="tracky-mouse-canvas-container-container">
 			<div class="tracky-mouse-canvas-container">
@@ -693,6 +829,42 @@ TrackyMouse.init = function (div, { statsJs = false } = {}) {
 	var adminGuideButton = uiContainer.querySelector('.tracky-mouse-admin-guide-button');
 	var toggleShortcutButton = uiContainer.querySelector(".tracky-mouse-shortcut-button");
 	var clearShortcutButton = uiContainer.querySelector(".tracky-mouse-clear-shortcut-button");
+	var postureEnabledCheckbox = uiContainer.querySelector("#tracky-mouse-posture-enabled");
+	var postureThresholdSlider = uiContainer.querySelector(".tracky-mouse-posture-threshold");
+	var postureLight = uiContainer.querySelector(".tracky-mouse-posture-light");
+	var postureStatusText = uiContainer.querySelector(".tracky-mouse-posture-status-text");
+	function buildPostureMetricEl(metric) {
+		var root = uiContainer.querySelector('.tracky-mouse-posture-metric[data-metric="' + metric + '"]');
+		if (!root) return { root: null };
+		return {
+			root: root,
+			mark:  root.querySelector('.tracky-mouse-posture-metric-mark'),
+			value: root.querySelector('.tracky-mouse-posture-metric-value'),
+			bar:     root.querySelector('.tracky-mouse-posture-bar'),
+			zoneLow: root.querySelector('.tracky-mouse-posture-bar-low'),
+			zoneOk:  root.querySelector('.tracky-mouse-posture-bar-ok'),
+			zoneHigh:root.querySelector('.tracky-mouse-posture-bar-high'),
+			marker:  root.querySelector('.tracky-mouse-posture-bar-marker'),
+			inputLow:  root.querySelector('.tracky-mouse-posture-thr-low'),
+			inputHigh: root.querySelector('.tracky-mouse-posture-thr-high'),
+		};
+	}
+	var postureMetricEls = {
+		pitch:    buildPostureMetricEl("pitch"),
+		forward:  buildPostureMetricEl("forward"),
+		facesize: buildPostureMetricEl("facesize"),
+		headpos:  buildPostureMetricEl("headpos"),
+		shoulder: buildPostureMetricEl("shoulder"),
+	};
+	var postureBaselineValueEl = uiContainer.querySelector(".tracky-mouse-posture-baseline-value");
+	var postureCalibrateButton = uiContainer.querySelector(".tracky-mouse-posture-calibrate-button");
+	var postureResetButton = uiContainer.querySelector(".tracky-mouse-posture-reset-button");
+	var postureDebugButton = uiContainer.querySelector(".tracky-mouse-posture-debug-button");
+	var postureMarkGoodButton = uiContainer.querySelector(".tracky-mouse-posture-mark-good-button");
+	var postureMarkBadButton = uiContainer.querySelector(".tracky-mouse-posture-mark-bad-button");
+	var postureMarkCountEl = uiContainer.querySelector(".tracky-mouse-posture-mark-count");
+	var postureSaveDefaultsButton = uiContainer.querySelector(".tracky-mouse-posture-save-defaults-button");
+	var postureRestoreDefaultsButton = uiContainer.querySelector(".tracky-mouse-posture-restore-defaults-button");
 
 	if (window.electronAPI) {
 		// Hide the desktop app download message if we're in the desktop app
@@ -741,6 +913,286 @@ TrackyMouse.init = function (div, { statsJs = false } = {}) {
 
 	var canvas = uiContainer.querySelector(".tracky-mouse-canvas");
 	var ctx = canvas.getContext('2d');
+
+	// Posture monitor state
+	var postureEnabled = true;
+	var postureThreshold = 50; // 0..100 slider value; 50 = 1.0× multiplier for all per-metric thresholds
+	var postureEMA = { pitch: null, forward: null, faceWidth: null, eyesY: null };
+	// Per-metric asymmetric thresholds (low/high deltas from baseline; bad when outside).
+	// Defaults derived from user's training data (±max good-cluster deviation × 1.1 margin).
+	// All metrics are scale-invariant: deltas are either angles, z-ratios, or fractions
+	// normalized by faceWidth so they don't depend on user's distance from camera.
+	var POSTURE_BUILTIN_DEFAULTS = {
+		thresholds: {
+			pitch:    { low: -3,     high: 3     }, // degrees (invariant)
+			forward:  { low: -0.052, high: 0.052 }, // z-ratio / faceWidth (invariant)
+			faceSize: { low: -0.20,  high: 0.20  }, // fraction of baseline faceWidth — wider to tolerate chair adjustments
+			eyesY:    { low: -0.35,  high: 0.35  }, // Δ eyesY normalized by current faceWidth (invariant)
+		},
+		globalMultiplier: 50,
+	};
+	function cloneThresholds(t) {
+		return {
+			pitch:    { low: t.pitch.low,    high: t.pitch.high    },
+			forward:  { low: t.forward.low,  high: t.forward.high  },
+			faceSize: { low: t.faceSize.low, high: t.faceSize.high },
+			eyesY:    { low: t.eyesY.low,    high: t.eyesY.high    },
+		};
+	}
+	var postureThresholds = cloneThresholds(POSTURE_BUILTIN_DEFAULTS.thresholds);
+	// User's saved personal defaults, if any. Null = fall back to POSTURE_BUILTIN_DEFAULTS.
+	var postureUserDefaults = null;
+	var postureLastAlertAt = 0;
+	var postureAboveSince = 0;
+	var postureAudioCtx = null;
+	var postureBaseline = null;              // { pitch, forward, faceWidth, eyesY } – reference for "upright"
+	var postureManualBaseline = null;        // set by "Use current as neutral" button
+	var POSTURE_HOLD_MS = 1000;
+	var POSTURE_BEEP_INTERVAL_MS = 500; // repeat beep every N ms while in bad state
+	// Debug ring buffer (last 60s of raw samples) for "Copy debug log" button.
+	var POSTURE_DEBUG_WINDOW_MS = 60000;
+	var postureDebugBuffer = [];
+	// Latest frame's raw landmarks + metrics (kept so "Mark good/bad" buttons can snapshot).
+	var postureLatestSnapshot = null;
+	// Labeled samples captured by the user via Mark buttons. Cleared only by Reset baseline.
+	var postureLabeledSamples = [];
+
+	function avgPoints(points) {
+		var x = 0, y = 0, z = 0, n = points.length;
+		for (var i = 0; i < n; i++) {
+			x += points[i][0];
+			y += points[i][1];
+			z += points[i][2];
+		}
+		return [x / n, y / n, z / n];
+	}
+	function postureBeep() {
+		try {
+			if (!postureAudioCtx) {
+				postureAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+			}
+			var t0 = postureAudioCtx.currentTime;
+			var osc = postureAudioCtx.createOscillator();
+			var gain = postureAudioCtx.createGain();
+			osc.type = "sine";
+			osc.frequency.setValueAtTime(660, t0);
+			osc.frequency.setValueAtTime(440, t0 + 0.12);
+			gain.gain.setValueAtTime(0.0001, t0);
+			gain.gain.exponentialRampToValueAtTime(0.25, t0 + 0.02);
+			gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.26);
+			osc.connect(gain).connect(postureAudioCtx.destination);
+			osc.start(t0);
+			osc.stop(t0 + 0.3);
+		} catch (e) { /* ignore */ }
+	}
+	// metric: "pitch" | "forward" | "facesize" | "headpos" | "shoulder"
+	// ok: true | false | null (idle)
+	function setPostureMetric(metric, ok, displayValue, delta, thr) {
+		var el = postureMetricEls[metric];
+		if (!el || !el.root) return;
+		el.mark.textContent = ok === null ? "–" : (ok ? "V" : "X");
+		el.root.dataset.state = ok === null ? "idle" : (ok ? "ok" : "bad");
+		el.value.textContent = displayValue != null ? displayValue : "–";
+		// Update bar if we have one (not for shoulder)
+		if (el.bar && thr) {
+			var range = Number(el.root.dataset.range);
+			// map delta ∈ [-range, +range] to 0..100%
+			var clampedDelta = Math.max(-range, Math.min(range, delta || 0));
+			var markerPct = ((clampedDelta + range) / (2 * range)) * 100;
+			el.marker.style.left = markerPct + "%";
+			el.marker.dataset.state = ok === false ? "bad" : "ok";
+			// Zone widths: low zone from 0 to (thr.low+range)/2range, ok from there to (thr.high+range)/2range, high rest
+			var lowPct  = Math.max(0, Math.min(100, ((Math.max(-range, thr.low)  + range) / (2 * range)) * 100));
+			var highPct = Math.max(0, Math.min(100, ((Math.min( range, thr.high) + range) / (2 * range)) * 100));
+			el.zoneLow.style.left = "0%";
+			el.zoneLow.style.width = lowPct + "%";
+			el.zoneOk.style.left = lowPct + "%";
+			el.zoneOk.style.width = (highPct - lowPct) + "%";
+			el.zoneHigh.style.left = highPct + "%";
+			el.zoneHigh.style.width = (100 - highPct) + "%";
+		}
+	}
+	function setPostureLight(state, text) {
+		postureLight.dataset.state = state;
+		postureStatusText.textContent = text;
+	}
+	function updatePostureFromFacemesh(prediction, isPaused) {
+		if (isPaused) {
+			postureAboveSince = 0;
+			postureLastAlertAt = 0;
+			setPostureLight("idle", "Tracking paused — posture alerts off");
+			return;
+		}
+		if (!prediction || !prediction.annotations) {
+			postureEMA.pitch = null;
+			postureEMA.forward = null;
+			postureEMA.faceWidth = null;
+			postureEMA.eyesY = null;
+			postureAboveSince = 0;
+			setPostureMetric("pitch", null, "–", 0, postureThresholds.pitch);
+			setPostureMetric("forward", null, "–", 0, postureThresholds.forward);
+			setPostureMetric("facesize", null, "–", 0, postureThresholds.faceSize);
+			setPostureMetric("headpos", null, "–", 0, postureThresholds.eyesY);
+			setPostureMetric("shoulder", null, "Not yet available");
+			setPostureLight("idle", "Waiting for face...");
+			if (postureBaselineValueEl && !postureManualBaseline) {
+				postureBaselineValueEl.textContent = "not set — click \"Use current as neutral\"";
+			}
+			return;
+		}
+		if ((prediction.faceInViewConfidence || 0) < 0.85) {
+			return; // low confidence – freeze UI
+		}
+		var ann = prediction.annotations;
+		var eyes = ann.midwayBetweenEyes && ann.midwayBetweenEyes[0];
+		var nose = ann.noseTip && ann.noseTip[0];
+		var lips = ann.lipsLowerOuter && ann.lipsLowerOuter.length ? avgPoints(ann.lipsLowerOuter) : null;
+		var lCheek = ann.leftCheek && ann.leftCheek[0];
+		var rCheek = ann.rightCheek && ann.rightCheek[0];
+		if (!eyes || !nose || !lips || !lCheek || !rCheek) return;
+
+		// Four features — on the user's empirical data these give 100% separation of good vs bad.
+		// Sign is irrelevant; we use ABS deviation from baseline.
+		var dy = lips[1] - eyes[1];
+		var dz = lips[2] - eyes[2];
+		var pitchDeg = Math.atan2(dz, dy) * 180 / Math.PI;
+		var faceWidth = Math.hypot(lCheek[0] - rCheek[0], lCheek[1] - rCheek[1]) || 1;
+		var forward = (eyes[2] - nose[2]) / faceWidth;
+		var eyesY = eyes[1];
+
+		// EMA smoothing
+		var a = 0.18;
+		function ema(prev, cur) { return prev == null ? cur : (prev * (1 - a) + cur * a); }
+		postureEMA.pitch     = ema(postureEMA.pitch, pitchDeg);
+		postureEMA.forward   = ema(postureEMA.forward, forward);
+		postureEMA.faceWidth = ema(postureEMA.faceWidth, faceWidth);
+		postureEMA.eyesY     = ema(postureEMA.eyesY, eyesY);
+
+		var now = performance.now();
+
+		// Keep latest raw landmarks + metrics for the Mark buttons to snapshot.
+		postureLatestSnapshot = {
+			t: Math.round(now),
+			pitchRaw: pitchDeg, forwardRaw: forward,
+			pitchEMA: postureEMA.pitch, forwardEMA: postureEMA.forward,
+			dy: dy, dz: dz, faceWidth: faceWidth,
+			faceInViewConfidence: prediction.faceInViewConfidence,
+			eyes:    { x: eyes[0],   y: eyes[1],   z: eyes[2]   },
+			nose:    { x: nose[0],   y: nose[1],   z: nose[2]   },
+			lips:    { x: lips[0],   y: lips[1],   z: lips[2]   },
+			lCheek:  { x: lCheek[0], y: lCheek[1], z: lCheek[2] },
+			rCheek:  { x: rCheek[0], y: rCheek[1], z: rCheek[2] },
+		};
+
+		// Debug buffer
+		postureDebugBuffer.push({
+			t: Math.round(now),
+			pitchRaw: pitchDeg, forwardRaw: forward,
+			pitchEMA: postureEMA.pitch, forwardEMA: postureEMA.forward,
+			faceWidth: faceWidth, eyesY: eyesY,
+			dy: dy, dz: dz
+		});
+		var debugCutoff = now - POSTURE_DEBUG_WINDOW_MS;
+		while (postureDebugBuffer.length && postureDebugBuffer[0].t < debugCutoff) postureDebugBuffer.shift();
+
+		var haveBaseline = !!postureManualBaseline;
+		if (haveBaseline) postureBaseline = postureManualBaseline;
+
+		// Signed deltas from baseline — all scale-invariant so user can sit at different distances.
+		var sPitch    = haveBaseline ? (postureEMA.pitch     - postureBaseline.pitch)     : 0;
+		var sForward  = haveBaseline ? (postureEMA.forward   - postureBaseline.forward)   : 0;
+		// faceSize as fraction of baseline (20% growth = 0.20). Same under perspective change within reason.
+		var sFaceSize = haveBaseline ? (postureEMA.faceWidth - postureBaseline.faceWidth) / postureBaseline.faceWidth : 0;
+		// headDrop: vertical shift normalized by CURRENT faceWidth — invariant to user's distance from camera.
+		var sHeadPos  = haveBaseline ? (postureEMA.eyesY     - postureBaseline.eyesY) / (postureEMA.faceWidth || 1) : 0;
+
+		// Global multiplier from slider: 0→×0.5 (strict), 50→×1.0, 100→×2.0 (lenient).
+		var gm = Math.pow(2, (postureThreshold - 50) / 50); // 0→0.5, 50→1.0, 100→2.0
+
+		function scaledThr(m) {
+			return { low: postureThresholds[m].low * gm, high: postureThresholds[m].high * gm };
+		}
+		var thrPitch    = scaledThr("pitch");
+		var thrForward  = scaledThr("forward");
+		var thrFaceSize = scaledThr("faceSize");
+		var thrHeadPos  = scaledThr("eyesY");
+
+		function outsideRange(v, t) { return v < t.low || v > t.high; }
+		// Hysteresis: once "bad", widen the OK window by 50% so small corrections don't flap.
+		function relaxThr(t, mul) {
+			return { low: t.low * mul, high: t.high * mul };
+		}
+		var state = postureLight.dataset.state;
+		var useRelax = (state === "bad" || state === "warn");
+		var r = useRelax ? 1.5 : 1.0;
+
+		var pitchBad    = outsideRange(sPitch,    relaxThr(thrPitch,    r));
+		var forwardBad  = outsideRange(sForward,  relaxThr(thrForward,  r));
+		var facesizeBad = outsideRange(sFaceSize, relaxThr(thrFaceSize, r));
+		var headposBad  = outsideRange(sHeadPos,  relaxThr(thrHeadPos,  r));
+
+		function fmtDelta(v, digits, unit) {
+			unit = unit || "";
+			return (v >= 0 ? "+" : "") + v.toFixed(digits) + unit;
+		}
+
+		setPostureMetric("pitch",    !pitchBad,
+			haveBaseline ? postureEMA.pitch.toFixed(1)  + "° (Δ" + fmtDelta(sPitch,  1, "°") + ")" : postureEMA.pitch.toFixed(1) + "° (no baseline)",
+			sPitch, thrPitch);
+		setPostureMetric("forward",  !forwardBad,
+			haveBaseline ? postureEMA.forward.toFixed(3) + " (Δ" + fmtDelta(sForward, 3, "")  + ")" : postureEMA.forward.toFixed(3) + " (no baseline)",
+			sForward, thrForward);
+		setPostureMetric("facesize", !facesizeBad,
+			haveBaseline ? postureEMA.faceWidth.toFixed(0) + "px (Δ" + fmtDelta(sFaceSize * 100, 1, "%") + ")" : postureEMA.faceWidth.toFixed(0) + "px (no baseline)",
+			sFaceSize, thrFaceSize);
+		setPostureMetric("headpos",  !headposBad,
+			haveBaseline ? "Δ" + fmtDelta(sHeadPos * 100, 1, "%") + " of face width" : "(no baseline)",
+			sHeadPos, thrHeadPos);
+		setPostureMetric("shoulder", null, "Not yet available");
+
+		if (postureBaselineValueEl) {
+			if (haveBaseline) {
+				postureBaselineValueEl.textContent =
+					"pitch " + postureBaseline.pitch.toFixed(1) + "°, " +
+					"forward " + postureBaseline.forward.toFixed(3) + ", " +
+					"faceW " + postureBaseline.faceWidth.toFixed(0) + "px, " +
+					"eyesY " + postureBaseline.eyesY.toFixed(0) + "px (manual)";
+			} else {
+				postureBaselineValueEl.textContent = "not set — sit straight and click \"Use current as neutral\"";
+			}
+		}
+
+		if (!haveBaseline) {
+			setPostureLight("idle", "Waiting for calibration — click \"Use current as neutral\"");
+			postureAboveSince = 0;
+			return;
+		}
+
+		var slouching = pitchBad || forwardBad || facesizeBad || headposBad;
+		if (slouching) {
+			if (!postureAboveSince) postureAboveSince = now;
+			var held = now - postureAboveSince;
+			var reasons = [];
+			if (pitchBad)    reasons.push("tilt " + fmtDelta(postureEMA.pitch - postureBaseline.pitch, 1, "°"));
+			if (forwardBad)  reasons.push("forward " + fmtDelta(postureEMA.forward - postureBaseline.forward, 3, ""));
+			if (facesizeBad) reasons.push("size " + fmtDelta((postureEMA.faceWidth - postureBaseline.faceWidth) / postureBaseline.faceWidth * 100, 1, "%"));
+			if (headposBad)  reasons.push("pos " + fmtDelta(postureEMA.eyesY - postureBaseline.eyesY, 0, "px"));
+			var reason = reasons.join(", ");
+			if (held >= POSTURE_HOLD_MS) {
+				setPostureLight("bad", "Slouching (" + reason + ")");
+				if (postureEnabled && now - postureLastAlertAt >= POSTURE_BEEP_INTERVAL_MS) {
+					postureLastAlertAt = now;
+					postureBeep();
+				}
+			} else {
+				setPostureLight("warn", "Borderline (" + reason + ")");
+			}
+		} else {
+			postureAboveSince = 0;
+			postureLastAlertAt = 0;
+			setPostureLight("ok", "Good posture");
+		}
+	}
 
 	var pointerEl = document.createElement('div');
 	pointerEl.className = "tracky-mouse-pointer";
@@ -915,6 +1367,42 @@ TrackyMouse.init = function (div, { statsJs = false } = {}) {
 					startStopButton.removeAttribute("aria-keyshortcuts");
 				}
 			}
+			if (settings.globalSettings.postureMonitor !== undefined) {
+				var pm = settings.globalSettings.postureMonitor || {};
+				if (pm.enabled !== undefined) {
+					postureEnabled = !!pm.enabled;
+					postureEnabledCheckbox.checked = postureEnabled;
+				}
+				if (pm.threshold !== undefined) {
+					postureThreshold = pm.threshold;
+					postureThresholdSlider.value = postureThreshold;
+				}
+				// v3 extends baseline to 4 features (pitch, forward, faceWidth, eyesY). Older saves are discarded.
+				var b = pm.manualBaselineV3;
+				if (b && typeof b.pitch === "number" && typeof b.forward === "number" && typeof b.faceWidth === "number" && typeof b.eyesY === "number") {
+					postureManualBaseline = { pitch: b.pitch, forward: b.forward, faceWidth: b.faceWidth, eyesY: b.eyesY };
+				} else {
+					postureManualBaseline = null;
+				}
+				// v5: eyesY is now a fraction of faceWidth (was pixels in v4) and faceSize defaults widened.
+				if (pm.thresholdsV5 && typeof pm.thresholdsV5 === "object") {
+					["pitch", "forward", "faceSize", "eyesY"].forEach(function (k) {
+						var t = pm.thresholdsV5[k];
+						if (t && typeof t.low === "number" && typeof t.high === "number") {
+							postureThresholds[k] = { low: t.low, high: t.high };
+						}
+					});
+					if (typeof populatePostureThrInputs === "function") populatePostureThrInputs();
+				}
+				if (pm.userDefaultsV5 && typeof pm.userDefaultsV5 === "object" && pm.userDefaultsV5.thresholds) {
+					postureUserDefaults = {
+						thresholds: cloneThresholds(pm.userDefaultsV5.thresholds),
+						globalMultiplier: typeof pm.userDefaultsV5.globalMultiplier === "number" ? pm.userDefaultsV5.globalMultiplier : 50,
+					};
+				} else {
+					postureUserDefaults = null;
+				}
+			}
 		}
 	}
 	const formatVersion = 1;
@@ -933,6 +1421,13 @@ TrackyMouse.init = function (div, { statsJs = false } = {}) {
 				headTrackingSensitivityY: sensitivityY,
 				headTrackingAcceleration: acceleration,
 				toggleShortcut,
+				postureMonitor: {
+					enabled: postureEnabled,
+					threshold: postureThreshold,
+					manualBaselineV3: postureManualBaseline,
+					thresholdsV5: postureThresholds,
+					userDefaultsV5: postureUserDefaults,
+				},
 				// TODO:
 				// eyeTrackingSensitivityX,
 				// eyeTrackingSensitivityY,
@@ -1021,6 +1516,165 @@ TrackyMouse.init = function (div, { statsJs = false } = {}) {
 		if (event) {
 			setOptions({ globalSettings: { runAtLogin } });
 		}
+	};
+	function savePostureSettings() {
+		setOptions({ globalSettings: { postureMonitor: {
+			enabled: postureEnabled,
+			threshold: postureThreshold,
+			manualBaselineV3: postureManualBaseline,
+			thresholdsV5: postureThresholds,
+			userDefaultsV5: postureUserDefaults,
+		} } });
+	}
+	function postureThrInputToValue(metric, inputVal) {
+		// facesize and headpos inputs are in % for user-friendliness; stored as fraction
+		return (metric === "facesize" || metric === "headpos") ? (inputVal / 100) : inputVal;
+	}
+	function postureThrValueToInput(metric, val) {
+		return (metric === "facesize" || metric === "headpos") ? (val * 100) : val;
+	}
+	function populatePostureThrInputs() {
+		var m2key = { pitch: "pitch", forward: "forward", facesize: "faceSize", headpos: "eyesY" };
+		Object.keys(m2key).forEach(function (m) {
+			var el = postureMetricEls[m];
+			if (!el || !el.inputLow) return;
+			var storeKey = m2key[m];
+			el.inputLow.value  = postureThrValueToInput(m, postureThresholds[storeKey].low);
+			el.inputHigh.value = postureThrValueToInput(m, postureThresholds[storeKey].high);
+		});
+	}
+	function wirePostureThrInputs() {
+		var m2key = { pitch: "pitch", forward: "forward", facesize: "faceSize", headpos: "eyesY" };
+		Object.keys(m2key).forEach(function (m) {
+			var el = postureMetricEls[m];
+			if (!el || !el.inputLow) return;
+			var storeKey = m2key[m];
+			var onChange = function () {
+				var lo = parseFloat(el.inputLow.value);
+				var hi = parseFloat(el.inputHigh.value);
+				if (isNaN(lo) || isNaN(hi)) return;
+				if (lo > hi) { var t = lo; lo = hi; hi = t; }
+				postureThresholds[storeKey].low  = postureThrInputToValue(m, lo);
+				postureThresholds[storeKey].high = postureThrInputToValue(m, hi);
+				savePostureSettings();
+			};
+			el.inputLow.onchange = onChange;
+			el.inputHigh.onchange = onChange;
+		});
+	}
+	populatePostureThrInputs();
+	wirePostureThrInputs();
+	postureEnabledCheckbox.onchange = (event) => {
+		postureEnabled = postureEnabledCheckbox.checked;
+		if (event) savePostureSettings();
+	};
+	postureThresholdSlider.onchange = (event) => {
+		postureThreshold = Number(postureThresholdSlider.value);
+		if (event) savePostureSettings();
+	};
+	postureCalibrateButton.onclick = () => {
+		if (postureEMA.pitch == null || postureEMA.forward == null || postureEMA.faceWidth == null || postureEMA.eyesY == null) {
+			postureStatusText.textContent = "No face detected yet — cannot calibrate.";
+			return;
+		}
+		postureManualBaseline = {
+			pitch:     postureEMA.pitch,
+			forward:   postureEMA.forward,
+			faceWidth: postureEMA.faceWidth,
+			eyesY:     postureEMA.eyesY,
+		};
+		postureAboveSince = 0;
+		postureLastAlertAt = 0;
+		savePostureSettings();
+		postureCalibrateButton.textContent = "Saved!";
+		setTimeout(() => { postureCalibrateButton.textContent = "Use current as neutral"; }, 2000);
+	};
+	postureResetButton.onclick = () => {
+		postureManualBaseline = null;
+		postureBaseline = null;
+		postureAboveSince = 0;
+		postureLastAlertAt = 0;
+		postureLabeledSamples = [];
+		updatePostureMarkCount();
+		savePostureSettings();
+	};
+	function updatePostureMarkCount() {
+		var good = postureLabeledSamples.filter(function (s) { return s.label === "good"; }).length;
+		var bad = postureLabeledSamples.filter(function (s) { return s.label === "bad"; }).length;
+		postureMarkCountEl.textContent = "good: " + good + " / bad: " + bad;
+	}
+	function captureLabeledSample(label, btn, originalText) {
+		if (!postureLatestSnapshot) {
+			btn.textContent = "No face yet";
+			setTimeout(function () { btn.textContent = originalText; }, 1500);
+			return;
+		}
+		postureLabeledSamples.push(Object.assign({ label: label }, postureLatestSnapshot));
+		updatePostureMarkCount();
+		btn.textContent = "Captured!";
+		setTimeout(function () { btn.textContent = originalText; }, 600);
+	}
+	postureSaveDefaultsButton.onclick = () => {
+		postureUserDefaults = {
+			thresholds: cloneThresholds(postureThresholds),
+			globalMultiplier: postureThreshold,
+		};
+		savePostureSettings();
+		postureSaveDefaultsButton.textContent = "Saved!";
+		setTimeout(() => { postureSaveDefaultsButton.textContent = "Save current as my defaults"; }, 1500);
+	};
+	postureRestoreDefaultsButton.onclick = () => {
+		var src = postureUserDefaults || POSTURE_BUILTIN_DEFAULTS;
+		postureThresholds = cloneThresholds(src.thresholds);
+		postureThreshold = src.globalMultiplier;
+		postureThresholdSlider.value = postureThreshold;
+		populatePostureThrInputs();
+		savePostureSettings();
+		postureRestoreDefaultsButton.textContent = postureUserDefaults ? "Restored your defaults" : "Restored built-in defaults";
+		setTimeout(() => { postureRestoreDefaultsButton.textContent = "Restore defaults"; }, 2000);
+	};
+	postureMarkGoodButton.onclick = function () {
+		captureLabeledSample("good", postureMarkGoodButton, "Mark: good posture");
+	};
+	postureMarkBadButton.onclick = function () {
+		captureLabeledSample("bad", postureMarkBadButton, "Mark: bad posture");
+	};
+	postureDebugButton.onclick = async () => {
+		var payload = {
+			now: new Date().toISOString(),
+			baseline: postureBaseline,
+			manualBaseline: postureManualBaseline,
+			thresholdSlider: postureThreshold,
+			labeledSamples: postureLabeledSamples,
+			continuousSamples: postureDebugBuffer,
+		};
+		var text = JSON.stringify(payload, null, 2);
+		var reset = function () {
+			setTimeout(function () { postureDebugButton.textContent = "Save debug log"; }, 3000);
+		};
+		if (window.electronAPI && typeof window.electronAPI.savePostureDebugLog === "function") {
+			try {
+				var result = await window.electronAPI.savePostureDebugLog(text);
+				if (result && result.success) {
+					postureDebugButton.textContent = "Saved: " + result.path;
+				} else {
+					postureDebugButton.textContent = "Save failed: " + (result && result.error);
+				}
+			} catch (e) {
+				postureDebugButton.textContent = "Save error: " + e.message;
+			}
+			reset();
+			return;
+		}
+		// Fallback: web/browser demo — copy to clipboard.
+		try {
+			await navigator.clipboard.writeText(text);
+			postureDebugButton.textContent = "Copied to clipboard";
+		} catch (e) {
+			console.log("TrackyMouse posture debug log:\n" + text);
+			postureDebugButton.textContent = "See DevTools console";
+		}
+		reset();
 	};
 	toggleShortcutButton.onclick = (e) => {
 		console.log("Shortcut button clicked", e);
@@ -1732,6 +2386,8 @@ TrackyMouse.init = function (div, { statsJs = false } = {}) {
 		if (window.electronAPI) {
 			window.electronAPI.notifyCameraFeedDiagnostics({ headNotFound: !face && !facemeshPrediction });
 		}
+
+		updatePostureFromFacemesh(facemeshPrediction, paused);
 
 		if (facemeshPrediction) {
 			ctx.fillStyle = "red";

@@ -52,17 +52,63 @@
 
 .tracky-mouse-ui {
 	display: flex;
-	flex-direction: column;
+	flex-direction: row;
 	background-color: rgb(223, 204, 255);
 	color: black;
 	padding: 10px;
 	border-radius: 5px;
-	--max-ui-width: 600px;
+	--max-ui-width: none;
 	max-width: var(--max-ui-width);
 	box-sizing: border-box;
 	font-size: 15px;
 	font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 	accent-color: rgb(191, 36, 234);
+	gap: 15px;
+	align-items: stretch;
+	height: 100%;
+	min-height: 0;
+}
+
+.tracky-mouse-ui .tracky-mouse-controls {
+	order: 2;
+	width: 400px;
+	flex-shrink: 0;
+	min-height: 0;
+	height: 100%;
+	overflow-y: auto;
+	overflow-x: hidden;
+	padding-right: 6px;
+}
+
+.tracky-mouse-ui .tracky-mouse-canvas-container-container {
+	order: 1;
+	flex: 1;
+	min-width: 0;
+	min-height: 0;
+}
+
+@media (max-width: 900px) {
+	.tracky-mouse-ui {
+		flex-direction: column;
+		height: auto;
+		min-height: 100%;
+		align-items: stretch;
+	}
+	.tracky-mouse-ui .tracky-mouse-controls {
+		order: 2;
+		width: auto;
+		height: auto;
+		max-height: none;
+		overflow: visible;
+		flex-shrink: 1;
+		padding-right: 0;
+	}
+	.tracky-mouse-ui .tracky-mouse-canvas-container-container {
+		order: 1;
+		width: auto;
+		min-height: 240px;
+		flex: 0 0 auto;
+	}
 }
 
 .tracky-mouse-canvas {
@@ -268,4 +314,235 @@ body:not(.tracky-mouse-manual-takeback) .tracky-mouse-manual-takeback-indicator 
 .tracky-mouse-ui a:link,
 .tracky-mouse-ui a:visited {
 	color: rgb(135 0 191);
+}
+
+.tracky-mouse-posture-section {
+	margin-top: 10px;
+	padding: 8px;
+	border: 1px solid rgba(0, 0, 0, 0.15);
+	border-radius: 6px;
+	background-color: rgba(255, 255, 255, 0.35);
+	container-type: inline-size;
+}
+
+.tracky-mouse-posture-heading {
+	font-weight: 700;
+	font-size: 16px;
+	margin: 0 0 8px;
+	padding-bottom: 6px;
+	border-bottom: 1px solid rgba(0,0,0,0.12);
+}
+
+.tracky-mouse-posture-group {
+	padding: 8px 6px;
+	margin-bottom: 6px;
+	background: rgba(255,255,255,0.35);
+	border-radius: 5px;
+}
+.tracky-mouse-posture-group:last-child { margin-bottom: 0; }
+.tracky-mouse-posture-group-title {
+	font-size: 12px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	opacity: 0.65;
+	margin: 0 0 6px;
+}
+
+.tracky-mouse-posture-status-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+	flex-wrap: wrap;
+}
+.tracky-mouse-posture-indicator {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	min-width: 0;
+	flex: 1 1 180px;
+}
+.tracky-mouse-posture-enable-row {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	white-space: nowrap;
+	flex-shrink: 0;
+}
+
+.tracky-mouse-posture-light {
+	width: 22px;
+	height: 22px;
+	border-radius: 50%;
+	background: #888;
+	box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.15) inset;
+	transition: background-color 0.2s, box-shadow 0.2s;
+	flex-shrink: 0;
+}
+.tracky-mouse-posture-light[data-state="idle"]  { background: #888; }
+.tracky-mouse-posture-light[data-state="ok"]    { background: #27c93f; box-shadow: 0 0 8px #27c93f; }
+.tracky-mouse-posture-light[data-state="warn"]  { background: #f5b400; box-shadow: 0 0 8px #f5b400; }
+.tracky-mouse-posture-light[data-state="bad"]   { background: #e5384a; box-shadow: 0 0 10px #e5384a; animation: tracky-mouse-posture-pulse 1s ease-in-out infinite; }
+
+@keyframes tracky-mouse-posture-pulse {
+	0%, 100% { box-shadow: 0 0 10px #e5384a; }
+	50%      { box-shadow: 0 0 18px #ff5060; }
+}
+
+.tracky-mouse-posture-status-text {
+	font-size: 14px;
+	opacity: 0.9;
+}
+
+.tracky-mouse-posture-metrics {
+	margin-top: 8px;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+	font-size: 13px;
+}
+
+.tracky-mouse-posture-metric {
+	padding: 6px 0;
+	border-bottom: 1px solid rgba(0,0,0,0.08);
+}
+.tracky-mouse-posture-metric:last-child { border-bottom: none; }
+.tracky-mouse-posture-metric-header {
+	display: grid;
+	grid-template-columns: 22px minmax(0, 1fr) auto;
+	gap: 8px;
+	align-items: center;
+}
+.tracky-mouse-posture-metric-name {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.tracky-mouse-posture-metric-simple .tracky-mouse-posture-metric-header { grid-template-columns: 22px 1fr auto; }
+.tracky-mouse-posture-bar {
+	position: relative;
+	height: 10px;
+	margin: 6px 0 2px;
+	background: rgba(0,0,0,0.1);
+	border-radius: 5px;
+	overflow: hidden;
+}
+.tracky-mouse-posture-bar-zone {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+}
+.tracky-mouse-posture-bar-low,
+.tracky-mouse-posture-bar-high { background: rgba(229, 56, 74, 0.35); }
+.tracky-mouse-posture-bar-ok   { background: rgba(39, 201, 63, 0.35); }
+.tracky-mouse-posture-bar-marker {
+	position: absolute;
+	top: -2px;
+	width: 4px;
+	height: 14px;
+	background: #333;
+	border-radius: 2px;
+	transform: translateX(-2px);
+	transition: left 0.1s linear;
+}
+.tracky-mouse-posture-bar-marker[data-state="bad"] {
+	background: #e5384a;
+	box-shadow: 0 0 6px #e5384a;
+}
+.tracky-mouse-posture-thr-row {
+	display: flex;
+	gap: 10px;
+	flex-wrap: wrap;
+	font-size: 11px;
+	opacity: 0.85;
+	margin-top: 4px;
+}
+.tracky-mouse-posture-thr-row label {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	white-space: nowrap;
+}
+.tracky-mouse-posture-thr-row input {
+	width: 60px;
+	min-width: 48px;
+	font-size: 11px;
+	padding: 1px 3px;
+	box-sizing: border-box;
+}
+
+.tracky-mouse-posture-metric-mark {
+	width: 22px;
+	height: 22px;
+	border-radius: 4px;
+	text-align: center;
+	line-height: 22px;
+	font-weight: 700;
+	color: white;
+	background: #888;
+}
+.tracky-mouse-posture-metric[data-state="ok"]  .tracky-mouse-posture-metric-header .tracky-mouse-posture-metric-mark { background: #27c93f; }
+.tracky-mouse-posture-metric[data-state="bad"] .tracky-mouse-posture-metric-header .tracky-mouse-posture-metric-mark { background: #e5384a; }
+.tracky-mouse-posture-metric[data-state="idle"] .tracky-mouse-posture-metric-header .tracky-mouse-posture-metric-mark { background: #888; }
+
+.tracky-mouse-posture-metric-value {
+	font-variant-numeric: tabular-nums;
+	opacity: 0.85;
+}
+
+.tracky-mouse-posture-baseline-row {
+	font-size: 12px;
+	opacity: 0.85;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+	word-break: break-word;
+	margin-bottom: 6px;
+}
+
+.tracky-mouse-posture-buttons {
+	display: flex;
+	gap: 6px;
+	flex-wrap: wrap;
+	margin-top: 6px;
+}
+
+.tracky-mouse-posture-buttons button {
+	font-size: 12px;
+	padding: 4px 8px;
+	cursor: pointer;
+	white-space: nowrap;
+}
+
+.tracky-mouse-posture-global-row {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	gap: 4px;
+}
+.tracky-mouse-posture-global-row .tracky-mouse-labeled-slider {
+	position: relative;
+	margin-bottom: 14px;
+	max-width: none;
+}
+
+.tracky-mouse-posture-debug-section {
+	margin-top: 10px;
+	padding: 6px 8px;
+	background: rgba(0,0,0,0.05);
+	border-radius: 4px;
+	font-size: 12px;
+}
+.tracky-mouse-posture-debug-section > summary {
+	cursor: pointer;
+	font-weight: 600;
+	opacity: 0.75;
+	user-select: none;
+}
+.tracky-mouse-posture-debug-section[open] > summary {
+	opacity: 1;
+	margin-bottom: 6px;
+}
+.tracky-mouse-posture-mark-count {
+	font-size: 11px;
+	opacity: 0.7;
+	align-self: center;
 }
