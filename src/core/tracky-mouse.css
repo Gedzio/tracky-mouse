@@ -50,64 +50,81 @@
 	box-shadow: 0 0 10px yellow, 0 0 3px yellow;
 }
 
+/* === LAYOUT ===
+   Goal: controls are ALWAYS reachable regardless of window size.
+   - html/body fill viewport, no body scroll.
+   - .tracky-mouse-ui is a flex row (wide) or column (narrow).
+   - Controls panel always has its own overflow-y: auto so it scrolls internally.
+   - Camera panel is capped so it can't push controls off-screen.
+   - Override electron-app.html's @max-height:500px rule that hides controls.
+*/
+
 .tracky-mouse-ui {
 	display: flex;
 	flex-direction: row;
+	gap: 10px;
+	padding: 10px;
+	box-sizing: border-box;
+	height: 100%;
+	max-height: 100%;
+	align-items: stretch;
 	background-color: rgb(223, 204, 255);
 	color: black;
-	padding: 10px;
 	border-radius: 5px;
 	--max-ui-width: none;
 	max-width: var(--max-ui-width);
-	box-sizing: border-box;
 	font-size: 15px;
 	font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 	accent-color: rgb(191, 36, 234);
-	gap: 15px;
-	align-items: stretch;
-	height: 100%;
-	min-height: 0;
 }
 
 .tracky-mouse-ui .tracky-mouse-controls {
+	display: flex;
+	flex-direction: column;
 	order: 2;
-	width: 400px;
+	width: 380px;
 	flex-shrink: 0;
 	min-height: 0;
-	height: 100%;
+	max-height: 100%;
 	overflow-y: auto;
 	overflow-x: hidden;
 	padding-right: 6px;
+	box-sizing: border-box;
 }
 
 .tracky-mouse-ui .tracky-mouse-canvas-container-container {
 	order: 1;
-	flex: 1;
+	flex: 1 1 0;
 	min-width: 0;
 	min-height: 0;
+	max-height: 100%;
+	--tracky-mouse-camera-view-min-height: 0;
 }
 
-@media (max-width: 900px) {
+/* Narrow window — stack column: camera on top (capped), controls fill rest with scroll */
+@media (max-width: 800px) {
 	.tracky-mouse-ui {
 		flex-direction: column;
-		height: auto;
-		min-height: 100%;
-		align-items: stretch;
-	}
-	.tracky-mouse-ui .tracky-mouse-controls {
-		order: 2;
-		width: auto;
-		height: auto;
-		max-height: none;
-		overflow: visible;
-		flex-shrink: 1;
-		padding-right: 0;
 	}
 	.tracky-mouse-ui .tracky-mouse-canvas-container-container {
 		order: 1;
-		width: auto;
-		min-height: 240px;
 		flex: 0 0 auto;
+		max-height: 40vh;
+		width: 100%;
+	}
+	.tracky-mouse-ui .tracky-mouse-controls {
+		order: 2;
+		flex: 1 1 0;
+		width: 100%;
+		max-height: none;
+		padding-right: 0;
+	}
+}
+
+/* Override electron-app.html's @max-height:500px { .tracky-mouse-controls { display: none } } */
+@media screen and (max-height: 500px) {
+	.tracky-mouse-ui .tracky-mouse-controls {
+		display: flex !important;
 	}
 }
 
@@ -325,12 +342,19 @@ body:not(.tracky-mouse-manual-takeback) .tracky-mouse-manual-takeback-indicator 
 	container-type: inline-size;
 }
 
-.tracky-mouse-posture-heading {
-	font-weight: 700;
-	font-size: 16px;
+.tracky-mouse-posture-heading-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
 	margin: 0 0 8px;
 	padding-bottom: 6px;
 	border-bottom: 1px solid rgba(0,0,0,0.12);
+	flex-wrap: wrap;
+}
+.tracky-mouse-posture-heading {
+	font-weight: 700;
+	font-size: 16px;
 }
 
 .tracky-mouse-posture-group {
@@ -349,19 +373,18 @@ body:not(.tracky-mouse-manual-takeback) .tracky-mouse-manual-takeback-indicator 
 	margin: 0 0 6px;
 }
 
-.tracky-mouse-posture-status-row {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	gap: 10px;
-	flex-wrap: wrap;
-}
 .tracky-mouse-posture-indicator {
 	display: flex;
 	align-items: center;
 	gap: 10px;
+	width: 100%;
 	min-width: 0;
-	flex: 1 1 180px;
+}
+.tracky-mouse-posture-status-text {
+	flex: 1 1 auto;
+	min-width: 0;
+	word-break: break-word;
+	line-height: 1.25;
 }
 .tracky-mouse-posture-enable-row {
 	display: flex;
@@ -369,6 +392,36 @@ body:not(.tracky-mouse-manual-takeback) .tracky-mouse-manual-takeback-indicator 
 	gap: 4px;
 	white-space: nowrap;
 	flex-shrink: 0;
+}
+
+.tracky-mouse-posture-snooze-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-top: 8px;
+	flex-wrap: wrap;
+}
+.tracky-mouse-posture-snooze-label {
+	font-size: 13px;
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+}
+.tracky-mouse-posture-snooze-input {
+	width: 52px;
+	font-size: 13px;
+	padding: 1px 3px;
+	box-sizing: border-box;
+}
+.tracky-mouse-posture-snooze-btn {
+	font-size: 12px;
+	padding: 4px 10px;
+	cursor: pointer;
+}
+.tracky-mouse-posture-snooze-btn[data-active="true"] {
+	background: #ffd966;
+	border-color: #c9a000;
+	font-variant-numeric: tabular-nums;
 }
 
 .tracky-mouse-posture-light {

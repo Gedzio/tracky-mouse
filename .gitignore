@@ -1,6 +1,9 @@
 private/
 dist/
 
+# Posture monitor debug export
+posture-debug-log.json
+
 # Blender
 *.blend[0-9]
 

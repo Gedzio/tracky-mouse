@@ -297,6 +297,13 @@ require("./menus.js"); //({ loadSettings });
 // (To test the recovery, I've been using Ctrl+Alt+F1 and Ctrl+Alt+F2 in Ubuntu.
 // Note, if Ctrl + Alt + F2 doesn't get you back, try Ctrl+Alt+F7.)
 app.commandLine.appendSwitch("--disable-gpu-process-crash-limit");
+// Keep video/audio/timers running when the main window is minimized or occluded, so the posture
+// monitor keeps receiving camera frames and can still beep while the app is out of sight.
+// `backgroundThrottling: false` on webPreferences alone doesn't cover <video> decoding — these
+// Chromium flags disable the deeper renderer/backgrounding optimizations.
+app.commandLine.appendSwitch("disable-renderer-backgrounding");
+app.commandLine.appendSwitch("disable-backgrounding-occluded-windows");
+app.commandLine.appendSwitch("disable-background-timer-throttling");
 
 // Settings
 // (actual defaults come from the HTML template)
